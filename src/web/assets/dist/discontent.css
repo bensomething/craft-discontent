@@ -7,6 +7,26 @@
     margin-bottom: 24px;
 }
 
+/* On smaller screens: search on its own row, then the dropdown + switch below. */
+@media (max-width: 767px) {
+    #ct-toolbar {
+        flex-wrap: wrap;
+    }
+
+    #ct-toolbar > .texticon.search {
+        flex: 1 1 100%;
+    }
+
+    #ct-toolbar > .select {
+        flex: 1 1 auto;
+    }
+
+    #ct-toolbar #ct-type,
+    #ct-toolbar #ct-usage {
+        max-width: none;
+    }
+}
+
 #ct-toolbar .ct-unused-toggle {
     align-items: center;
     gap: 8px;
@@ -36,8 +56,3 @@
     cursor: pointer;
 }
 
-/* Trim the content pane’s top padding on the settings screen so the lone
-   setting doesn’t float in dead space. */
-#ct-settings {
-    margin-block-start: calc(var(--m) * -1);
-}

@@ -4,74 +4,66 @@
 {% set selectedNavItem = 'settings' %}
 {% set selectedSubnavItem = 'settings' %}
 {% set crumbs = [
-    { label: "Discontent"|t('discontent'), url: url('discontent') },
+    { label: craft.app.plugins.getPlugin('discontent').name, url: url('discontent') },
     { label: "Settings"|t('app'), url: url('discontent/settings') },
 ] %}
 
+{# Full-page form → Save button in the top-right header + Cmd/Ctrl-S shortcut. #}
+{% set fullPageForm = not readOnly %}
+
 {% block content %}
-  <div id="ct-settings">
     {% if readOnly %}
         <div class="pane">
             <p class="light">{{ "Administrative changes are disabled in this environment, so these settings can’t be edited here."|t('discontent') }}</p>
         </div>
     {% endif %}
 
-    <form method="post" accept-charset="UTF-8">
-        {{ csrfInput() }}
-        {{ actionInput('plugins/save-plugin-settings') }}
-        {{ hiddenInput('pluginHandle', 'discontent') }}
-        {{ redirectInput('discontent/settings') }}
+    {{ actionInput('plugins/save-plugin-settings') }}
+    {{ hiddenInput('pluginHandle', 'discontent') }}
+    {{ redirectInput('discontent/settings') }}
 
-        {{ forms.textField({
-            label: "Plugin name"|t('discontent'),
-            instructions: "The public-facing name of the plugin."|t('discontent'),
-            id: 'pluginName',
-            name: 'settings[pluginName]',
-            value: settings.pluginName,
-            placeholder: 'Discontent',
-            autofocus: true,
+    {{ forms.textField({
+        label: "Plugin name"|t('discontent'),
+        instructions: "The public-facing name of the plugin."|t('discontent'),
+        id: 'pluginName',
+        name: 'settings[pluginName]',
+        value: settings.pluginName,
+        placeholder: 'Discontent',
+        autofocus: true,
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: "Replace native pages"|t('discontent'),
+        instructions: "When on, Settings → Fields and Entry Types use the enhanced filtering pages. Turn off to use Craft’s native pages."|t('discontent'),
+        id: 'overrideNativePages',
+        name: 'settings[overrideNativePages]',
+        on: settings.overrideNativePages,
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: "Show in main navigation"|t('discontent'),
+        instructions: "Adds a nav item to the main control-panel nav, linking to the Fields and Entry Types pages."|t('discontent'),
+        id: 'showInMainNav',
+        name: 'settings[showInMainNav]',
+        on: settings.showInMainNav,
+        toggle: 'defaultView-container',
+        disabled: readOnly,
+    }) }}
+
+    <div id="defaultView-container"{% if not settings.showInMainNav %} class="hidden"{% endif %}>
+        {{ forms.selectField({
+            label: "Default view"|t('discontent'),
+            instructions: "Which page the main-nav item opens."|t('discontent'),
+            id: 'defaultView',
+            name: 'settings[defaultView]',
+            options: [
+                { label: "Entry Types"|t('discontent'), value: 'entry-types' },
+                { label: "Fields"|t('discontent'), value: 'fields' },
+            ],
+            value: settings.defaultView,
             disabled: readOnly,
         }) }}
-
-        {{ forms.lightswitchField({
-            label: "Replace native pages"|t('discontent'),
-            instructions: "When on, Settings → Fields and Entry Types use the enhanced filtering pages. Turn off to use Craft’s native pages."|t('discontent'),
-            id: 'overrideNativePages',
-            name: 'settings[overrideNativePages]',
-            on: settings.overrideNativePages,
-            disabled: readOnly,
-        }) }}
-
-        {{ forms.lightswitchField({
-            label: "Show in main navigation"|t('discontent'),
-            instructions: "Adds a nav item to the main control-panel nav, linking to the Fields and Entry Types pages. Off by default."|t('discontent'),
-            id: 'showInMainNav',
-            name: 'settings[showInMainNav]',
-            on: settings.showInMainNav,
-            toggle: 'defaultView-container',
-            disabled: readOnly,
-        }) }}
-
-        <div id="defaultView-container"{% if not settings.showInMainNav %} class="hidden"{% endif %}>
-            {{ forms.selectField({
-                label: "Default view"|t('discontent'),
-                instructions: "Which page the main-nav item opens."|t('discontent'),
-                id: 'defaultView',
-                name: 'settings[defaultView]',
-                options: [
-                    { label: "Entry Types"|t('discontent'), value: 'entry-types' },
-                    { label: "Fields"|t('discontent'), value: 'fields' },
-                ],
-                value: settings.defaultView,
-                disabled: readOnly,
-            }) }}
-        </div>
-
-        {% if not readOnly %}
-            <div class="buttons">
-                <button type="submit" class="btn submit">{{ "Save"|t('app') }}</button>
-            </div>
-        {% endif %}
-    </form>
-  </div>
+    </div>
 {% endblock %}
