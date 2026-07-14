@@ -7,12 +7,17 @@
     margin-bottom: 24px;
 }
 
-/* Give the dropdown a definite width so the <select> fills the .select wrapper
-   and the chevron sits at its edge (the wrapper defaults to 25em, which leaves
-   the chevron detached from the shorter select). */
+/* Cap the .select wrapper to its content (it defaults to 25em) and size the
+   <select> to content too, so the chevron sits right after the text instead of
+   floating at the wrapper's far edge. No fixed width, so the standard toolbar
+   layout (search grows, dropdown natural) is preserved. */
 #ct-toolbar > .select {
     flex: 0 0 auto;
-    width: 220px;
+    max-width: max-content;
+}
+
+#ct-toolbar > .select select {
+    width: auto;
 }
 
 #ct-toolbar .ct-unused-toggle {
