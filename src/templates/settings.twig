@@ -1,0 +1,34 @@
+{% extends "content-tools/_layout" %}
+{% import "_includes/forms" as forms %}
+
+{% set selectedTab = 'settings' %}
+
+{% block content %}
+    {% if readOnly %}
+        <div class="pane">
+            <p class="light">{{ "Administrative changes are disabled in this environment, so these settings can’t be edited here."|t('content-tools') }}</p>
+        </div>
+    {% endif %}
+
+    <form method="post" accept-charset="UTF-8">
+        {{ csrfInput() }}
+        {{ actionInput('plugins/save-plugin-settings') }}
+        {{ hiddenInput('pluginHandle', 'content-tools') }}
+        {{ redirectInput('content-tools/settings') }}
+
+        {{ forms.lightswitchField({
+            label: "Show in main navigation"|t('content-tools'),
+            instructions: "Adds a “Content Tools” item to the main control-panel nav (with a Fields / Entry Types / Settings subnav). Off by default — the tool is reached through this plugin’s gear in Settings → Plugins."|t('content-tools'),
+            id: 'showInMainNav',
+            name: 'settings[showInMainNav]',
+            on: settings.showInMainNav,
+            disabled: readOnly,
+        }) }}
+
+        {% if not readOnly %}
+            <div class="buttons">
+                <button type="submit" class="btn submit">{{ "Save"|t('app') }}</button>
+            </div>
+        {% endif %}
+    </form>
+{% endblock %}

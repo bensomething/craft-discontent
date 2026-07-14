@@ -1,0 +1,52 @@
+{
+    "name": "bensomething/craft-content-tools",
+    "description": "Adds field-type and “unused” filtering to admin-facing Fields and Entry Types screens in the Craft CMS control panel.",
+    "type": "craft-plugin",
+    "license": "MIT",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "plugin",
+        "fields",
+        "entry types",
+        "admin"
+    ],
+    "support": {
+        "issues": "https://github.com/bensomething/craft-content-tools/issues",
+        "source": "https://github.com/bensomething/craft-content-tools"
+    },
+    "require": {
+        "php": "^8.2",
+        "craftcms/cms": "^5.10"
+    },
+    "require-dev": {
+        "craftcms/ecs": "dev-main",
+        "craftcms/phpstan": "dev-main"
+    },
+    "autoload": {
+        "psr-4": {
+            "bensomething\\contenttools\\": "src/"
+        }
+    },
+    "extra": {
+        "handle": "content-tools",
+        "name": "Content Tools",
+        "developer": "Ben Smith",
+        "developerUrl": "https://bensomething.com",
+        "documentationUrl": "https://github.com/bensomething/craft-content-tools",
+        "changelogUrl": "https://raw.githubusercontent.com/bensomething/craft-content-tools/main/CHANGELOG.md",
+        "class": "bensomething\\contenttools\\Plugin"
+    },
+    "config": {
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true,
+            "craftcms/plugin-installer": true
+        }
+    },
+    "scripts": {
+        "check-cs": "ecs check --ansi",
+        "fix-cs": "ecs check --ansi --fix",
+        "phpstan": "phpstan --memory-limit=1G"
+    }
+}

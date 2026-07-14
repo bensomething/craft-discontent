@@ -1,0 +1,21 @@
+/* Content Tools toolbar */
+
+#ct-toolbar {
+    align-items: center;
+    gap: 10px;
+}
+
+#ct-toolbar .ct-unused-toggle {
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+#ct-toolbar .ct-unused-toggle label {
+    margin: 0;
+    cursor: pointer;
+}
+
+#ct-toolbar #ct-type {
+    max-width: 220px;
+}

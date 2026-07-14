@@ -1,0 +1,12 @@
+{% extends "_layouts/cp" %}
+
+{% set crumbs = [
+    { label: "Settings"|t('app'), url: url('settings') },
+    { label: "Plugins"|t('app'), url: url('settings/plugins') },
+] %}
+
+{% set tabs = {
+    'fields': { label: "Fields"|t('content-tools'), url: url('content-tools/fields') },
+    'entry-types': { label: "Entry Types"|t('content-tools'), url: url('content-tools/entry-types') },
+    'settings': { label: "Settings"|t('content-tools'), url: url('content-tools/settings') },
+} %}

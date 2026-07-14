@@ -1,0 +1,65 @@
+{% extends "content-tools/_layout" %}
+{% import "_includes/forms" as forms %}
+
+{% set selectedTab = 'fields' %}
+
+{% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') %}
+{% do view.registerAssetBundle('bensomething\\contenttools\\web\\assets\\ContentToolsAsset') %}
+
+{% do view.registerTranslations('app', ['Handle', 'Name', 'Type', 'Used by', 'No usages', 'No results.', 'Search']) %}
+
+{% block content %}
+    <div id="ct-toolbar" class="toolbar flex flex-nowrap" style="margin-bottom: 24px;">
+        <div class="flex-grow texticon search icon clearable">
+            <input type="text" id="ct-search" class="text fullwidth" autocomplete="off"
+                   placeholder="{{ 'Search'|t('app') }}" aria-label="{{ 'Search'|t('app') }}">
+        </div>
+        {{ forms.select({
+            id: 'ct-type',
+            options: [{ label: 'All field types'|t('content-tools'), value: '' }]|merge(fieldTypes),
+        }) }}
+        <div class="flex flex-nowrap ct-unused-toggle">
+            {{ forms.lightswitch({ id: 'ct-unused' }) }}
+            <label for="ct-unused">{{ 'Unused only'|t('content-tools') }}</label>
+        </div>
+    </div>
+
+    <div id="ct-fields-table"></div>
+{% endblock %}
+
+{% js %}
+    (() => {
+        const columns = [
+            { name: '__slot:title', title: Craft.t('content-tools', 'Name'), sortField: true },
+            { name: '__slot:handle', title: Craft.t('app', 'Handle'), sortField: true },
+            {
+                name: 'type',
+                title: Craft.t('app', 'Type'),
+                sortField: true,
+                callback: (value) => {
+                    let label = '<div class="flex flex-nowrap gap-s">' +
+                        `<div class="cp-icon small">${value.icon}</div>`;
+                    label += value.isMissing
+                        ? `<span class="error">${value.label}</span>`
+                        : `<span>${value.label}</span>`;
+                    return label + '</div>';
+                },
+            },
+            {
+                name: 'usages',
+                title: Craft.t('app', 'Used by'),
+                callback: (value) => value || `<i class="light">${Craft.t('app', 'No usages')}</i>`,
+            },
+        ];
+
+        new Craft.ContentTools.FilterTable({
+            columns: columns,
+            tableContainer: '#ct-fields-table',
+            endpoint: 'content-tools/fields/table-data',
+            emptyMessage: Craft.t('content-tools', 'No fields match these filters.'),
+            searchSelector: '#ct-search',
+            typeSelector: '#ct-type',
+            unusedSelector: '#ct-unused',
+        });
+    })();
+{% endjs %}
