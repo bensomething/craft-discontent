@@ -1,11 +1,11 @@
-{% extends "content-tools/_layout" %}
+{% extends "discontent/_layout" %}
 {% import "_includes/forms" as forms %}
 
 {% set selectedNavItem = 'entry-types' %}
 {% set selectedSubnavItem = 'entry-types' %}
 {% set crumbs = [
-    { label: "Content Tools"|t('content-tools'), url: url('content-tools') },
-    { label: "Entry Types"|t('app'), url: url('content-tools/entry-types') },
+    { label: craft.app.plugins.getPlugin('discontent').name, url: url('discontent') },
+    { label: "Entry Types"|t('app'), url: url('discontent/entry-types') },
 ] %}
 
 {% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') %}
@@ -27,16 +27,17 @@
         {{ forms.select({
             id: 'ct-usage',
             options: [
-                { label: 'All entry types'|t('content-tools'), value: '' },
-                { label: 'Entries'|t('content-tools'), value: 'section' },
-                { label: 'Matrix entries'|t('content-tools'), value: 'field' },
+                { label: 'All entry types'|t('discontent'), value: '' },
+                { label: 'Section Entries'|t('discontent'), value: 'section' },
+                { label: 'Matrix entries'|t('discontent'), value: 'matrix' },
+                { label: 'Nested CKEditor entries'|t('discontent'), value: 'ckeditor' },
             ],
             value: initialFilter ?? '',
         }) }}
         {% if showUnused ?? false %}
             <div class="flex flex-nowrap ct-unused-toggle">
                 {{ forms.lightswitch({ id: 'ct-unused', on: initialUnused ?? false }) }}
-                <label for="ct-unused">{{ 'Unused'|t('content-tools') }}</label>
+                <label for="ct-unused">{{ 'Unused'|t('discontent') }}</label>
             </div>
         {% endif %}
     </div>
@@ -56,11 +57,11 @@
             },
         ];
 
-        new Craft.ContentTools.FilterTable({
+        new Craft.Discontent.FilterTable({
             columns: columns,
             tableContainer: '#ct-entry-types-table',
-            endpoint: 'content-tools/entry-types/table-data',
-            emptyMessage: Craft.t('content-tools', 'No entry types match these filters.'),
+            endpoint: 'discontent/entry-types/table-data',
+            emptyMessage: Craft.t('discontent', 'No entry types match these filters.'),
             searchSelector: '#ct-search',
             filterSelector: '#ct-usage',
             filterParam: 'usage',

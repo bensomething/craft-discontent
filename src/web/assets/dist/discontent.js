@@ -1,5 +1,5 @@
 /**
- * Content Tools — a VueAdminTable driven by our own toolbar.
+ * Discontent — a VueAdminTable driven by our own toolbar.
  *
  * The tool owns the toolbar (search box + filter dropdown + "Unused"
  * lightswitch) rather than injecting into Vue's rendered toolbar. Filter
@@ -11,11 +11,11 @@
  * param name, edit action) come in via settings.
  */
 (function ($) {
-    if (typeof Craft.ContentTools === 'undefined') {
-        Craft.ContentTools = {};
+    if (typeof Craft.Discontent === 'undefined') {
+        Craft.Discontent = {};
     }
 
-    Craft.ContentTools.FilterTable = Garnish.Base.extend({
+    Craft.Discontent.FilterTable = Garnish.Base.extend({
         settings: null,
         table: null,
         $search: null,

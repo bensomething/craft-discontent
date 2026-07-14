@@ -1,30 +1,41 @@
-{% extends "content-tools/_layout" %}
+{% extends "discontent/_layout" %}
 {% import "_includes/forms" as forms %}
 
 {% set selectedNavItem = 'settings' %}
 {% set selectedSubnavItem = 'settings' %}
 {% set crumbs = [
-    { label: "Content Tools"|t('content-tools'), url: url('content-tools') },
-    { label: "Settings"|t('app'), url: url('content-tools/settings') },
+    { label: "Discontent"|t('discontent'), url: url('discontent') },
+    { label: "Settings"|t('app'), url: url('discontent/settings') },
 ] %}
 
 {% block content %}
   <div id="ct-settings">
     {% if readOnly %}
         <div class="pane">
-            <p class="light">{{ "Administrative changes are disabled in this environment, so these settings can’t be edited here."|t('content-tools') }}</p>
+            <p class="light">{{ "Administrative changes are disabled in this environment, so these settings can’t be edited here."|t('discontent') }}</p>
         </div>
     {% endif %}
 
     <form method="post" accept-charset="UTF-8">
         {{ csrfInput() }}
         {{ actionInput('plugins/save-plugin-settings') }}
-        {{ hiddenInput('pluginHandle', 'content-tools') }}
-        {{ redirectInput('content-tools/settings') }}
+        {{ hiddenInput('pluginHandle', 'discontent') }}
+        {{ redirectInput('discontent/settings') }}
+
+        {{ forms.textField({
+            label: "Plugin name"|t('discontent'),
+            instructions: "The public-facing name of the plugin."|t('discontent'),
+            id: 'pluginName',
+            name: 'settings[pluginName]',
+            value: settings.pluginName,
+            placeholder: 'Discontent',
+            autofocus: true,
+            disabled: readOnly,
+        }) }}
 
         {{ forms.lightswitchField({
-            label: "Replace native pages"|t('content-tools'),
-            instructions: "When on, Settings → Fields (and Entry Types, once available) use the enhanced filtering pages. Turn off to use Craft’s native pages."|t('content-tools'),
+            label: "Replace native pages"|t('discontent'),
+            instructions: "When on, Settings → Fields and Entry Types use the enhanced filtering pages. Turn off to use Craft’s native pages."|t('discontent'),
             id: 'overrideNativePages',
             name: 'settings[overrideNativePages]',
             on: settings.overrideNativePages,
@@ -32,26 +43,29 @@
         }) }}
 
         {{ forms.lightswitchField({
-            label: "Show in main navigation"|t('content-tools'),
-            instructions: "Adds a “Content Tools” item to the main control-panel nav, linking to the Fields and Entry Types pages. Off by default."|t('content-tools'),
+            label: "Show in main navigation"|t('discontent'),
+            instructions: "Adds a nav item to the main control-panel nav, linking to the Fields and Entry Types pages. Off by default."|t('discontent'),
             id: 'showInMainNav',
             name: 'settings[showInMainNav]',
             on: settings.showInMainNav,
+            toggle: 'defaultView-container',
             disabled: readOnly,
         }) }}
 
-        {{ forms.selectField({
-            label: "Default view"|t('content-tools'),
-            instructions: "Which page the top-level Content Tools link opens."|t('content-tools'),
-            id: 'defaultView',
-            name: 'settings[defaultView]',
-            options: [
-                { label: "Entry Types"|t('content-tools'), value: 'entry-types' },
-                { label: "Fields"|t('content-tools'), value: 'fields' },
-            ],
-            value: settings.defaultView,
-            disabled: readOnly,
-        }) }}
+        <div id="defaultView-container"{% if not settings.showInMainNav %} class="hidden"{% endif %}>
+            {{ forms.selectField({
+                label: "Default view"|t('discontent'),
+                instructions: "Which page the main-nav item opens."|t('discontent'),
+                id: 'defaultView',
+                name: 'settings[defaultView]',
+                options: [
+                    { label: "Entry Types"|t('discontent'), value: 'entry-types' },
+                    { label: "Fields"|t('discontent'), value: 'fields' },
+                ],
+                value: settings.defaultView,
+                disabled: readOnly,
+            }) }}
+        </div>
 
         {% if not readOnly %}
             <div class="buttons">

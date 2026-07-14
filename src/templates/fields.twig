@@ -1,11 +1,11 @@
-{% extends "content-tools/_layout" %}
+{% extends "discontent/_layout" %}
 {% import "_includes/forms" as forms %}
 
 {% set selectedNavItem = 'fields' %}
 {% set selectedSubnavItem = 'fields' %}
 {% set crumbs = [
-    { label: "Content Tools"|t('content-tools'), url: url('content-tools') },
-    { label: "Fields"|t('app'), url: url('content-tools/fields') },
+    { label: craft.app.plugins.getPlugin('discontent').name, url: url('discontent') },
+    { label: "Fields"|t('app'), url: url('discontent/fields') },
 ] %}
 
 {% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') %}
@@ -26,13 +26,13 @@
         </div>
         {{ forms.select({
             id: 'ct-type',
-            options: [{ label: 'All field types'|t('content-tools'), value: '' }]|merge(fieldTypes),
+            options: [{ label: 'All field types'|t('discontent'), value: '' }]|merge(fieldTypes),
             value: initialFilter ?? '',
         }) }}
         {% if showUnused ?? false %}
             <div class="flex flex-nowrap ct-unused-toggle">
                 {{ forms.lightswitch({ id: 'ct-unused', on: initialUnused ?? false }) }}
-                <label for="ct-unused">{{ 'Unused'|t('content-tools') }}</label>
+                <label for="ct-unused">{{ 'Unused'|t('discontent') }}</label>
             </div>
         {% endif %}
     </div>
@@ -43,7 +43,7 @@
 {% js %}
     (() => {
         const columns = [
-            { name: '__slot:title', title: Craft.t('content-tools', 'Name'), sortField: true },
+            { name: '__slot:title', title: Craft.t('discontent', 'Name'), sortField: true },
             { name: '__slot:handle', title: Craft.t('app', 'Handle'), sortField: true },
             {
                 name: 'type',
@@ -65,11 +65,11 @@
             },
         ];
 
-        new Craft.ContentTools.FilterTable({
+        new Craft.Discontent.FilterTable({
             columns: columns,
             tableContainer: '#ct-fields-table',
-            endpoint: 'content-tools/fields/table-data',
-            emptyMessage: Craft.t('content-tools', 'No fields match these filters.'),
+            endpoint: 'discontent/fields/table-data',
+            emptyMessage: Craft.t('discontent', 'No fields match these filters.'),
             searchSelector: '#ct-search',
             filterSelector: '#ct-type',
             filterParam: 'type',

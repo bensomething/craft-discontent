@@ -1,8 +1,8 @@
 <?php
 
-namespace bensomething\contenttools;
+namespace bensomething\discontent;
 
-use bensomething\contenttools\models\Settings;
+use bensomething\discontent\models\Settings;
 use Craft;
 use craft\base\Model;
 use craft\events\RegisterUrlRulesEvent;
@@ -11,9 +11,9 @@ use craft\web\UrlManager;
 use yii\base\Event;
 
 /**
- * Content Tools — enhanced, filterable Fields and Entry Types screens.
+ * Discontent — enhanced, filterable Fields and Entry Types screens.
  *
- * The pages live canonically at /content-tools/<slug>. When the
+ * The pages live canonically at /discontent/<slug>. When the
  * overrideNativePages setting is on, Craft’s native Settings → Fields (and,
  * later, Entry Types) links redirect to them, so they become the de-facto
  * native pages while keeping clean URLs (which also keeps the nav subnav open).
@@ -34,6 +34,9 @@ class Plugin extends \craft\base\Plugin
     {
         parent::init();
 
+        // Apply the admin-defined public-facing name.
+        $this->name = $this->getSettings()->getName();
+
         if (Craft::$app->getRequest()->getIsCpRequest()) {
             $this->registerCpRoutes();
         }
@@ -45,12 +48,12 @@ class Plugin extends \craft\base\Plugin
     }
 
     /**
-     * The plugin’s gear (Settings → Plugins → Content Tools) opens the tool’s
+     * The plugin’s gear (Settings → Plugins → Discontent) opens the tool’s
      * own settings page.
      */
     public function getSettingsResponse(): mixed
     {
-        return Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('content-tools/settings'));
+        return Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('discontent/settings'));
     }
 
     public function getCpNavItem(): ?array
@@ -60,15 +63,15 @@ class Plugin extends \craft\base\Plugin
         }
 
         $item = parent::getCpNavItem();
-        $item['label'] = Craft::t('content-tools', 'Content Tools');
+        $item['label'] = $this->name;
         $item['icon'] = 'hammer';
         // The shared prefix so the item stays selected (and its subnav open) on
-        // every /content-tools/* subpage.
-        $item['url'] = 'content-tools';
+        // every /discontent/* subpage.
+        $item['url'] = 'discontent';
         $item['subnav'] = [
-            'entry-types' => ['label' => Craft::t('content-tools', 'Entry Types'), 'url' => 'content-tools/entry-types', 'icon' => 'files'],
-            'fields' => ['label' => Craft::t('content-tools', 'Fields'), 'url' => 'content-tools/fields', 'icon' => 'pen-to-square'],
-            'settings' => ['label' => Craft::t('content-tools', 'Settings'), 'url' => 'content-tools/settings', 'icon' => 'gear'],
+            'entry-types' => ['label' => Craft::t('discontent', 'Entry Types'), 'url' => 'discontent/entry-types', 'icon' => 'files'],
+            'fields' => ['label' => Craft::t('discontent', 'Fields'), 'url' => 'discontent/fields', 'icon' => 'pen-to-square'],
+            'settings' => ['label' => Craft::t('discontent', 'Settings'), 'url' => 'discontent/settings', 'icon' => 'gear'],
         ];
 
         return $item;
@@ -83,17 +86,17 @@ class Plugin extends \craft\base\Plugin
                 // Canonical pages — always available regardless of settings.
                 // The bare prefix redirects to the configured default view so
                 // the landing URL is a real subpage (and highlights its subnav).
-                $event->rules['content-tools'] = 'content-tools/default/index';
-                $event->rules['content-tools/fields'] = 'content-tools/fields/index';
-                $event->rules['content-tools/entry-types'] = 'content-tools/entry-types/index';
-                $event->rules['content-tools/settings'] = 'content-tools/settings/index';
+                $event->rules['discontent'] = 'discontent/default/index';
+                $event->rules['discontent/fields'] = 'discontent/fields/index';
+                $event->rules['discontent/entry-types'] = 'discontent/entry-types/index';
+                $event->rules['discontent/settings'] = 'discontent/settings/index';
 
                 // Optionally redirect Craft’s native index pages to ours.
                 // (Settings read here, not in init(), so it reflects saved
                 // settings reliably.)
                 if ($this->getSettings()->overrideNativePages) {
-                    $event->rules['settings/fields'] = 'content-tools/fields/redirect';
-                    $event->rules['settings/entry-types'] = 'content-tools/entry-types/redirect';
+                    $event->rules['settings/fields'] = 'discontent/fields/redirect';
+                    $event->rules['settings/entry-types'] = 'discontent/entry-types/redirect';
                 }
             }
         );

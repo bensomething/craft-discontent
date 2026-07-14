@@ -1,6 +1,6 @@
 <?php
 
-namespace bensomething\contenttools\controllers;
+namespace bensomething\discontent\controllers;
 
 use Craft;
 use craft\base\ElementContainerFieldInterface;
@@ -15,7 +15,8 @@ use yii\web\Response;
 
 /**
  * The Entry Types tool: Craft’s Settings → Entry Types list plus a usage filter
- * (used by a Section / by a Matrix field) and an “Unused” toggle.
+ * (used by a Section, a Matrix field, or a nested CKEditor field) and an
+ * “Unused” toggle.
  */
 class EntryTypesController extends Controller
 {
@@ -30,7 +31,7 @@ class EntryTypesController extends Controller
      */
     public function actionRedirect(): Response
     {
-        return $this->redirect(UrlHelper::cpUrl('content-tools/entry-types'));
+        return $this->redirect(UrlHelper::cpUrl('discontent/entry-types'));
     }
 
     public function actionIndex(): Response
@@ -40,7 +41,7 @@ class EntryTypesController extends Controller
         $request = Craft::$app->getRequest();
         $initialUnused = (bool)$request->getParam('unused');
 
-        return $this->renderTemplate('content-tools/entry-types', [
+        return $this->renderTemplate('discontent/entry-types', [
             'showUnused' => $unusedCount > 1 || $initialUnused,
             'initialSearch' => (string)$request->getParam('search', ''),
             'initialFilter' => (string)$request->getParam('usage', ''),
@@ -67,7 +68,7 @@ class EntryTypesController extends Controller
         $entryTypes = Craft::$app->getEntries()->getAllEntryTypes();
 
         // Usage-kind filter
-        if ($usage === 'section' || $usage === 'field') {
+        if (in_array($usage, ['section', 'matrix', 'ckeditor'], true)) {
             $entryTypes = array_filter($entryTypes, fn(EntryType $et) => !empty($kinds[$et->id][$usage]));
         }
 
@@ -149,16 +150,22 @@ class EntryTypesController extends Controller
             }
         }
 
-        // Nested-entry fields (Matrix, CKEditor, …)
+        // Nested-entry fields, tracked by field type so Matrix and CKEditor
+        // entries can be filtered apart.
         $fieldsService = Craft::$app->getFields();
         foreach ($fieldsService->getNestedEntryFieldTypes() as $type) {
+            $kind = match ($type) {
+                \craft\fields\Matrix::class => 'matrix',
+                'craft\\ckeditor\\Field' => 'ckeditor',
+                default => 'field',
+            };
             /** @var ElementContainerFieldInterface[] $fields */
             $fields = $fieldsService->getFieldsByType($type);
             foreach ($fields as $field) {
                 foreach ($field->getFieldLayoutProviders() as $provider) {
                     if ($provider instanceof EntryType) {
                         $usages[$provider->id][] = $field;
-                        $kinds[$provider->id]['field'] = true;
+                        $kinds[$provider->id][$kind] = true;
                     }
                 }
             }

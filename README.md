@@ -1,6 +1,6 @@
-# Content Tools
+# Discontent
 
-A Craft CMS plugin that adds practical filtering to the admin-facing Fields and Entry Types screens — a field-type dropdown and an “Unused only” toggle — so you can find and clean up unused fields and entry types quickly.
+A Craft CMS plugin that supercharges the admin-facing **Fields** and **Entry Types** screens with filtering — by type/usage and by whether they’re actually used — so you can find and clean up unused fields and entry types fast.
 
 ## Requirements
 
@@ -9,25 +9,42 @@ A Craft CMS plugin that adds practical filtering to the admin-facing Fields and 
 
 ## Installation
 
-Install with Composer (this is a private plugin, so add the VCS repository first):
+This is a private plugin, so add the VCS repository first:
 
 ```json
 "repositories": [
-    { "type": "vcs", "url": "git@github.com:bensomething/craft-content-tools.git", "no-api": true }
+    { "type": "vcs", "url": "git@github.com:bensomething/craft-discontent.git", "no-api": true }
 ]
 ```
 
 ```bash
-composer require bensomething/craft-content-tools:dev-develop
-php craft plugin/install content-tools
+composer require bensomething/craft-discontent:dev-develop
+php craft plugin/install discontent
 ```
 
-## Usage
+## What it does
 
-Open **Settings → Plugins → Content Tools** (the plugin’s gear). You get:
+By default Discontent **replaces** Craft’s native Settings → Fields and Settings → Entry Types index pages with enhanced versions (the New/Edit screens stay native). Everything is admin-only and read-through — it reuses Craft’s own edit, save, and delete actions.
 
-- **Fields** — the same list as Settings → Fields, with a field-type dropdown and an **Unused only** toggle (a field is “unused” when it isn’t attached to any field layout).
-- **Entry Types** — _(coming next)_ a Section / Matrix Entry filter plus an **Unused only** toggle.
-- **Settings** — a **Show in main navigation** switch (off by default) that adds a Content Tools item to the main CP nav.
+**Fields**
+- Filter by field type (only types actually in use are listed)
+- **Unused** toggle — fields not attached to any field layout
+- Search, sort, double-click a row to edit in a slideout, delete, and “New field”
 
-The tool is admin-only and read-only; it works even when `allowAdminChanges` is disabled.
+**Entry Types**
+- Filter by usage: **Section Entries**, **Matrix entries**, or **Nested CKEditor entries**
+- **Unused** toggle — entry types used by no section or field
+- Search, sort, double-click to edit in a slideout, delete, and “New entry type”
+
+**Shareable views** — the current search/filter state lives in the URL, so you can bookmark or share a link to a filtered set.
+
+## Settings
+
+At **Settings → Plugins → Discontent**:
+
+- **Plugin name** — the public-facing name (nav item, page titles, plugin list).
+- **Replace native pages** — on by default; turn off to keep Craft’s native pages and leave the tool dormant.
+- **Show in main navigation** — off by default; adds a top-level nav item with a Fields / Entry Types / Settings subnav.
+- **Default view** — which page the main-nav item opens (shown when the nav item is enabled).
+
+The pages live canonically at `/discontent/*`; with **Replace native pages** on, the native Settings links redirect there.

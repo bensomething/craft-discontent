@@ -1,11 +1,11 @@
 <?php
 
-namespace bensomething\contenttools\web\assets;
+namespace bensomething\discontent\web\assets;
 
 use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;
 
-class ContentToolsAsset extends AssetBundle
+class DiscontentAsset extends AssetBundle
 {
     public $sourcePath = __DIR__ . '/dist';
 
@@ -14,10 +14,10 @@ class ContentToolsAsset extends AssetBundle
     ];
 
     public $js = [
-        'content-tools.js',
+        'discontent.js',
     ];
 
     public $css = [
-        'content-tools.css',
+        'discontent.css',
     ];
 }

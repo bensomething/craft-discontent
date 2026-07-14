@@ -1,5 +1,5 @@
 {
-    "name": "bensomething/craft-content-tools",
+    "name": "bensomething/craft-discontent",
     "description": "Adds field-type and “unused” filtering to admin-facing Fields and Entry Types screens in the Craft CMS control panel.",
     "type": "craft-plugin",
     "license": "MIT",
@@ -13,8 +13,8 @@
         "admin"
     ],
     "support": {
-        "issues": "https://github.com/bensomething/craft-content-tools/issues",
-        "source": "https://github.com/bensomething/craft-content-tools"
+        "issues": "https://github.com/bensomething/craft-discontent/issues",
+        "source": "https://github.com/bensomething/craft-discontent"
     },
     "require": {
         "php": "^8.2",
@@ -26,17 +26,17 @@
     },
     "autoload": {
         "psr-4": {
-            "bensomething\\contenttools\\": "src/"
+            "bensomething\\discontent\\": "src/"
         }
     },
     "extra": {
-        "handle": "content-tools",
-        "name": "Content Tools",
+        "handle": "discontent",
+        "name": "Discontent",
         "developer": "Ben Smith",
         "developerUrl": "https://bensomething.com",
-        "documentationUrl": "https://github.com/bensomething/craft-content-tools",
-        "changelogUrl": "https://raw.githubusercontent.com/bensomething/craft-content-tools/develop/CHANGELOG.md",
-        "class": "bensomething\\contenttools\\Plugin"
+        "documentationUrl": "https://github.com/bensomething/craft-discontent",
+        "changelogUrl": "https://raw.githubusercontent.com/bensomething/craft-discontent/develop/CHANGELOG.md",
+        "class": "bensomething\\discontent\\Plugin"
     },
     "config": {
         "allow-plugins": {

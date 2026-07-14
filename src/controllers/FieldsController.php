@@ -1,6 +1,6 @@
 <?php
 
-namespace bensomething\contenttools\controllers;
+namespace bensomething\discontent\controllers;
 
 use Craft;
 use craft\base\FieldInterface;
@@ -29,11 +29,11 @@ class FieldsController extends Controller
 
     /**
      * Redirect target for the hijacked native Settings → Fields URL, so the
-     * canonical /content-tools/fields URL is what the user lands on.
+     * canonical /discontent/fields URL is what the user lands on.
      */
     public function actionRedirect(): Response
     {
-        return $this->redirect(UrlHelper::cpUrl('content-tools/fields'));
+        return $this->redirect(UrlHelper::cpUrl('discontent/fields'));
     }
 
     public function actionIndex(): Response
@@ -61,7 +61,7 @@ class FieldsController extends Controller
         $request = Craft::$app->getRequest();
         $initialUnused = (bool)$request->getParam('unused');
 
-        return $this->renderTemplate('content-tools/fields', [
+        return $this->renderTemplate('discontent/fields', [
             'fieldTypes' => $types,
             // Only surface the "Unused" toggle when there’s more than one
             // unused field — or when a shared link has it active.
