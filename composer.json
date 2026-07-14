@@ -35,7 +35,7 @@
         "developer": "Ben Smith",
         "developerUrl": "https://bensomething.com",
         "documentationUrl": "https://github.com/bensomething/craft-content-tools",
-        "changelogUrl": "https://raw.githubusercontent.com/bensomething/craft-content-tools/main/CHANGELOG.md",
+        "changelogUrl": "https://raw.githubusercontent.com/bensomething/craft-content-tools/develop/CHANGELOG.md",
         "class": "bensomething\\contenttools\\Plugin"
     },
     "config": {

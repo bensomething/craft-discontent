@@ -18,7 +18,7 @@ Install with Composer (this is a private plugin, so add the VCS repository first
 ```
 
 ```bash
-composer require bensomething/craft-content-tools:dev-main
+composer require bensomething/craft-content-tools:dev-develop
 php craft plugin/install content-tools
 ```
 
