@@ -115,10 +115,11 @@
             if (!this.settings.editAction) {
                 return;
             }
+            var regex = this.settings.editIdRegex;
             var href = $(ev.currentTarget).find('a[href]').filter(function () {
-                return this.settings.editIdRegex.test($(this).attr('href'));
-            }.bind(this)).first().attr('href') || '';
-            var match = href.match(this.settings.editIdRegex);
+                return regex.test($(this).attr('href'));
+            }).first().attr('href') || '';
+            var match = href.match(regex);
             if (!match) {
                 return;
             }

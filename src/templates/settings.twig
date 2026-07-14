@@ -3,6 +3,10 @@
 
 {% set selectedNavItem = 'settings' %}
 {% set selectedSubnavItem = 'settings' %}
+{% set crumbs = [
+    { label: "Content Tools"|t('content-tools'), url: url('content-tools') },
+    { label: "Settings"|t('app'), url: url('content-tools/settings') },
+] %}
 
 {% block content %}
   <div id="ct-settings">

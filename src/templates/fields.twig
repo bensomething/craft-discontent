@@ -3,6 +3,10 @@
 
 {% set selectedNavItem = 'fields' %}
 {% set selectedSubnavItem = 'fields' %}
+{% set crumbs = [
+    { label: "Content Tools"|t('content-tools'), url: url('content-tools') },
+    { label: "Fields"|t('app'), url: url('content-tools/fields') },
+] %}
 
 {% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') %}
 {% do view.registerTranslations('app', ['Handle', 'Name', 'Type', 'Used by', 'No usages', 'No results.', 'Search']) %}

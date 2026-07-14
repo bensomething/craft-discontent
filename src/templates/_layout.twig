@@ -3,11 +3,9 @@
 {% do view.registerAssetBundle('bensomething\\contenttools\\web\\assets\\ContentToolsAsset') %}
 
 {# "Content Tools" stays the page title across every subpage; the current page
-   is indicated by the highlighted sidebar item. #}
+   is indicated by the highlighted sidebar item. Each page sets its own crumbs
+   ("Content Tools › <page>"). #}
 {% set title = "Content Tools"|t('content-tools') %}
-{% set crumbs = [
-    { label: "Settings"|t('app'), url: url('settings') },
-] %}
 
 {% set navItems = {
     'entry-types': { label: "Entry Types"|t('content-tools'), url: url('content-tools/entry-types') },

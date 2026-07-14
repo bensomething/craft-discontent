@@ -3,6 +3,10 @@
 
 {% set selectedNavItem = 'entry-types' %}
 {% set selectedSubnavItem = 'entry-types' %}
+{% set crumbs = [
+    { label: "Content Tools"|t('content-tools'), url: url('content-tools') },
+    { label: "Entry Types"|t('app'), url: url('content-tools/entry-types') },
+] %}
 
 {% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') %}
 {% do view.registerTranslations('app', ['Handle', 'Entry Type', 'Used by', 'No usages', 'No results.', 'Search']) %}
