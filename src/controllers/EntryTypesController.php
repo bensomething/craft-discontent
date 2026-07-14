@@ -37,8 +37,14 @@ class EntryTypesController extends Controller
     {
         [, , $unusedCount] = $this->usageIndex();
 
+        $request = Craft::$app->getRequest();
+        $initialUnused = (bool)$request->getParam('unused');
+
         return $this->renderTemplate('content-tools/entry-types', [
-            'showUnused' => $unusedCount > 1,
+            'showUnused' => $unusedCount > 1 || $initialUnused,
+            'initialSearch' => (string)$request->getParam('search', ''),
+            'initialFilter' => (string)$request->getParam('usage', ''),
+            'initialUnused' => $initialUnused,
         ]);
     }
 

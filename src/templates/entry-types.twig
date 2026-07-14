@@ -17,6 +17,7 @@
     <div id="ct-toolbar" class="toolbar flex flex-nowrap">
         <div class="flex-grow texticon search icon clearable">
             <input type="text" id="ct-search" class="text fullwidth" autocomplete="off"
+                   value="{{ initialSearch ?? '' }}"
                    placeholder="{{ 'Search'|t('app') }}" aria-label="{{ 'Search'|t('app') }}">
         </div>
         {{ forms.select({
@@ -26,10 +27,11 @@
                 { label: 'Entries'|t('content-tools'), value: 'section' },
                 { label: 'Matrix entries'|t('content-tools'), value: 'field' },
             ],
+            value: initialFilter ?? '',
         }) }}
         {% if showUnused ?? false %}
             <div class="flex flex-nowrap ct-unused-toggle">
-                {{ forms.lightswitch({ id: 'ct-unused' }) }}
+                {{ forms.lightswitch({ id: 'ct-unused', on: initialUnused ?? false }) }}
                 <label for="ct-unused">{{ 'Unused'|t('content-tools') }}</label>
             </div>
         {% endif %}

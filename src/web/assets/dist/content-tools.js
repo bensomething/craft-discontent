@@ -86,7 +86,16 @@
         },
 
         reload: function () {
+            this.updateUrl();
             this.build();
+        },
+
+        // Keep the address bar in sync so the current view is shareable /
+        // bookmarkable. replaceState (not push) so we don't spam history.
+        updateUrl: function () {
+            var qs = $.param(this.currentFilters());
+            var url = window.location.pathname + (qs ? '?' + qs : '');
+            window.history.replaceState({}, '', url);
         },
 
         onSearchInput: function () {

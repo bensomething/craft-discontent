@@ -57,11 +57,18 @@ class FieldsController extends Controller
         }
         usort($types, fn($a, $b) => strcasecmp($a['label'], $b['label']));
 
+        // Reflect any shared-link filters back into the toolbar controls.
+        $request = Craft::$app->getRequest();
+        $initialUnused = (bool)$request->getParam('unused');
+
         return $this->renderTemplate('content-tools/fields', [
             'fieldTypes' => $types,
             // Only surface the "Unused" toggle when there’s more than one
-            // unused field — filtering to a single result isn’t worth a control.
-            'showUnused' => $unusedCount > 1,
+            // unused field — or when a shared link has it active.
+            'showUnused' => $unusedCount > 1 || $initialUnused,
+            'initialSearch' => (string)$request->getParam('search', ''),
+            'initialFilter' => (string)$request->getParam('type', ''),
+            'initialUnused' => $initialUnused,
         ]);
     }
 
