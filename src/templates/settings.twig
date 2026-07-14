@@ -22,6 +22,15 @@
         {{ redirectInput('settings/plugins/content-tools') }}
 
         {{ forms.lightswitchField({
+            label: "Replace native pages"|t('content-tools'),
+            instructions: "When on, Settings → Fields (and Entry Types, once available) use the enhanced filtering pages. Turn off to use Craft’s native pages."|t('content-tools'),
+            id: 'overrideNativePages',
+            name: 'settings[overrideNativePages]',
+            on: settings.overrideNativePages,
+            disabled: readOnly,
+        }) }}
+
+        {{ forms.lightswitchField({
             label: "Show in main navigation"|t('content-tools'),
             instructions: "Adds a “Content Tools” item to the main control-panel nav, linking to the Fields and Entry Types pages. Off by default."|t('content-tools'),
             id: 'showInMainNav',

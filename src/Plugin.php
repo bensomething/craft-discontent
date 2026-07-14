@@ -32,7 +32,10 @@ class Plugin extends \craft\base\Plugin
     {
         parent::init();
 
-        if (Craft::$app->getRequest()->getIsCpRequest()) {
+        if (
+            Craft::$app->getRequest()->getIsCpRequest() &&
+            $this->getSettings()->overrideNativePages
+        ) {
             $this->registerCpRoutes();
         }
     }
