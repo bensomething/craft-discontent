@@ -1,11 +1,14 @@
 /**
  * Content Tools — a VueAdminTable driven by our own toolbar.
  *
- * The tool owns the toolbar (search box + type dropdown + "Unused only"
+ * The tool owns the toolbar (search box + filter dropdown + "Unused"
  * lightswitch) rather than injecting into Vue's rendered toolbar. Filter
  * state is passed to the server as query params on the table-data endpoint,
  * so all filtering happens server-side. `search` is disabled on the table
  * itself — our search input feeds the same endpoint param.
+ *
+ * Shared by the Fields and Entry Types pages; per-page specifics (filter
+ * param name, edit action) come in via settings.
  */
 (function ($) {
     if (typeof Craft.ContentTools === 'undefined') {
@@ -16,7 +19,7 @@
         settings: null,
         table: null,
         $search: null,
-        $type: null,
+        $filter: null,
         $unused: null,
         searchTimeout: null,
 
@@ -24,12 +27,12 @@
             this.settings = settings;
 
             this.$search = $(settings.searchSelector);
-            this.$type = $(settings.typeSelector);
+            this.$filter = $(settings.filterSelector);
             this.$unused = $(settings.unusedSelector);
 
             this.addListener(this.$search, 'input', 'onSearchInput');
             this.addListener(this.$search, 'keydown', 'onSearchKeydown');
-            this.addListener(this.$type, 'change', 'reload');
+            this.addListener(this.$filter, 'change', 'reload');
             this.addListener(this.$unused, 'change', 'reload');
 
             // Delegated on the document so it survives both table rebuilds and
@@ -43,34 +46,15 @@
             this.build();
         },
 
-        onRowDblClick: function (ev) {
-            var href = $(ev.currentTarget).find('a[href*="/fields/edit/"]').attr('href') || '';
-            var match = href.match(/\/fields\/edit\/(\d+)/);
-            if (!match) {
-                return;
-            }
-
-            // Clear the text the double-click just selected.
-            if (window.getSelection) {
-                window.getSelection().removeAllRanges();
-            }
-
-            var slideout = new Craft.CpScreenSlideout('fields/edit-field', {
-                params: { fieldId: parseInt(match[1], 10) },
-            });
-            // Refresh the table if the field was saved, so changes show.
-            slideout.on('submit', $.proxy(this, 'reload'));
-        },
-
         currentFilters: function () {
             var params = {};
-            var search = ($.trim(this.$search.val() || ''));
+            var search = $.trim(this.$search.val() || '');
             if (search) {
                 params.search = search;
             }
-            var type = this.$type.val();
-            if (type) {
-                params.type = type;
+            var filter = this.$filter.val();
+            if (filter) {
+                params[this.settings.filterParam || 'type'] = filter;
             }
             if (this.$unused.hasClass('on')) {
                 params.unused = '1';
@@ -116,6 +100,29 @@
                 clearTimeout(this.searchTimeout);
                 this.reload();
             }
+        },
+
+        onRowDblClick: function (ev) {
+            if (!this.settings.editAction) {
+                return;
+            }
+            var href = $(ev.currentTarget).find('a[href]').filter(function () {
+                return this.settings.editIdRegex.test($(this).attr('href'));
+            }.bind(this)).first().attr('href') || '';
+            var match = href.match(this.settings.editIdRegex);
+            if (!match) {
+                return;
+            }
+
+            // Clear the text the double-click just selected.
+            if (window.getSelection) {
+                window.getSelection().removeAllRanges();
+            }
+
+            var params = {};
+            params[this.settings.editParam] = parseInt(match[1], 10);
+            var slideout = new Craft.CpScreenSlideout(this.settings.editAction, { params: params });
+            slideout.on('submit', $.proxy(this, 'reload'));
         },
     });
 })(jQuery);

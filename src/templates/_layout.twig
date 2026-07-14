@@ -2,8 +2,13 @@
 
 {% do view.registerAssetBundle('bensomething\\contenttools\\web\\assets\\ContentToolsAsset') %}
 
-{# Persistent in-page nav so the three pages are always reachable from one
-   another — independent of the optional main-nav item. #}
+{# "Content Tools" stays the page title across every subpage; the current page
+   is indicated by the highlighted sidebar item. #}
+{% set title = "Content Tools"|t('content-tools') %}
+{% set crumbs = [
+    { label: "Settings"|t('app'), url: url('settings') },
+] %}
+
 {% set navItems = {
     'entry-types': { label: "Entry Types"|t('content-tools'), url: url('content-tools/entry-types') },
     'fields': { label: "Fields"|t('content-tools'), url: url('content-tools/fields') },

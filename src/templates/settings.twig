@@ -1,11 +1,8 @@
 {% extends "content-tools/_layout" %}
 {% import "_includes/forms" as forms %}
 
-{% set title = "Settings"|t('app') %}
+{% set selectedNavItem = 'settings' %}
 {% set selectedSubnavItem = 'settings' %}
-{% set crumbs = [
-    { label: "Content Tools"|t('content-tools'), url: url('content-tools') },
-] %}
 
 {% block content %}
   <div id="ct-settings">
@@ -36,6 +33,19 @@
             id: 'showInMainNav',
             name: 'settings[showInMainNav]',
             on: settings.showInMainNav,
+            disabled: readOnly,
+        }) }}
+
+        {{ forms.selectField({
+            label: "Default view"|t('content-tools'),
+            instructions: "Which page the top-level Content Tools link opens."|t('content-tools'),
+            id: 'defaultView',
+            name: 'settings[defaultView]',
+            options: [
+                { label: "Entry Types"|t('content-tools'), value: 'entry-types' },
+                { label: "Fields"|t('content-tools'), value: 'fields' },
+            ],
+            value: settings.defaultView,
             disabled: readOnly,
         }) }}
 

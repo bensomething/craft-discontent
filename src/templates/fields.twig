@@ -1,11 +1,8 @@
 {% extends "content-tools/_layout" %}
 {% import "_includes/forms" as forms %}
 
-{% set title = "Fields"|t('app') %}
+{% set selectedNavItem = 'fields' %}
 {% set selectedSubnavItem = 'fields' %}
-{% set crumbs = [
-    { label: "Content Tools"|t('content-tools'), url: url('content-tools') },
-] %}
 
 {% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') %}
 {% do view.registerTranslations('app', ['Handle', 'Name', 'Type', 'Used by', 'No usages', 'No results.', 'Search']) %}
@@ -68,8 +65,12 @@
             endpoint: 'content-tools/fields/table-data',
             emptyMessage: Craft.t('content-tools', 'No fields match these filters.'),
             searchSelector: '#ct-search',
-            typeSelector: '#ct-type',
+            filterSelector: '#ct-type',
+            filterParam: 'type',
             unusedSelector: '#ct-unused',
+            editAction: 'fields/edit-field',
+            editParam: 'fieldId',
+            editIdRegex: /\/fields\/edit\/(\d+)/,
             {% if craft.app.config.general.allowAdminChanges %}
             deleteAction: 'fields/delete-field',
             {% endif %}

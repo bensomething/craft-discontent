@@ -81,7 +81,9 @@ class Plugin extends \craft\base\Plugin
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
             function(RegisterUrlRulesEvent $event) {
                 // Canonical pages — always available regardless of settings.
-                $event->rules['content-tools'] = 'content-tools/fields/index';
+                // The bare prefix redirects to the configured default view so
+                // the landing URL is a real subpage (and highlights its subnav).
+                $event->rules['content-tools'] = 'content-tools/default/index';
                 $event->rules['content-tools/fields'] = 'content-tools/fields/index';
                 $event->rules['content-tools/entry-types'] = 'content-tools/entry-types/index';
                 $event->rules['content-tools/settings'] = 'content-tools/settings/index';
@@ -91,7 +93,7 @@ class Plugin extends \craft\base\Plugin
                 // settings reliably.)
                 if ($this->getSettings()->overrideNativePages) {
                     $event->rules['settings/fields'] = 'content-tools/fields/redirect';
-                    // 'settings/entry-types' redirect added once that tool is built.
+                    $event->rules['settings/entry-types'] = 'content-tools/entry-types/redirect';
                 }
             }
         );
