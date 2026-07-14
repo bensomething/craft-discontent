@@ -11,8 +11,16 @@
 {# Full-page form → Save button in the top-right header + Cmd/Ctrl-S shortcut. #}
 {% set fullPageForm = not readOnly %}
 
+{# Page-scoped: tighten the content pane’s vertical padding so the short form
+   doesn’t float in dead space. Only loads on this page. #}
+{% css %}
+    #main-content > .content-pane,
+    #main-content .content-pane {
+        padding-block: var(--m);
+    }
+{% endcss %}
+
 {% block content %}
-  <div id="ct-settings">
     {% if readOnly %}
         <div class="pane">
             <p class="light">{{ "Administrative changes are disabled in this environment, so these settings can’t be edited here."|t('discontent') }}</p>
@@ -67,5 +75,4 @@
             disabled: readOnly,
         }) }}
     </div>
-  </div>
 {% endblock %}
