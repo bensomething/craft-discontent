@@ -1,10 +1,10 @@
 {% extends "content-tools/_layout" %}
 {% import "_includes/forms" as forms %}
 
-{% set title = "Content Tools"|t('content-tools') %}
+{% set title = "Settings"|t('app') %}
+{% set selectedSubnavItem = 'settings' %}
 {% set crumbs = [
-    { label: "Settings"|t('app'), url: url('settings') },
-    { label: "Plugins"|t('app'), url: url('settings/plugins') },
+    { label: "Content Tools"|t('content-tools'), url: url('content-tools') },
 ] %}
 
 {% block content %}
@@ -19,7 +19,7 @@
         {{ csrfInput() }}
         {{ actionInput('plugins/save-plugin-settings') }}
         {{ hiddenInput('pluginHandle', 'content-tools') }}
-        {{ redirectInput('settings/plugins/content-tools') }}
+        {{ redirectInput('content-tools/settings') }}
 
         {{ forms.lightswitchField({
             label: "Replace native pages"|t('content-tools'),

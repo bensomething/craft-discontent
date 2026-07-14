@@ -1,8 +1,9 @@
 {% extends "content-tools/_layout" %}
 
 {% set title = "Entry Types"|t('app') %}
+{% set selectedSubnavItem = 'entry-types' %}
 {% set crumbs = [
-    { label: "Settings"|t('app'), url: url('settings') },
+    { label: "Content Tools"|t('content-tools'), url: url('content-tools') },
 ] %}
 
 {% block content %}

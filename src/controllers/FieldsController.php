@@ -8,6 +8,7 @@ use craft\base\Iconic;
 use craft\fields\MissingField;
 use craft\helpers\AdminTable;
 use craft\helpers\Cp;
+use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use yii\web\Response;
 
@@ -24,6 +25,15 @@ class FieldsController extends Controller
         // tool is read-only.
         $this->requireAdmin(false);
         return parent::beforeAction($action);
+    }
+
+    /**
+     * Redirect target for the hijacked native Settings → Fields URL, so the
+     * canonical /content-tools/fields URL is what the user lands on.
+     */
+    public function actionRedirect(): Response
+    {
+        return $this->redirect(UrlHelper::cpUrl('content-tools/fields'));
     }
 
     public function actionIndex(): Response
