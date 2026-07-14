@@ -30,24 +30,27 @@ class FieldsController extends Controller
     {
         $fieldsService = Craft::$app->getFields();
 
-        $types = [];
-        foreach ($fieldsService->getAllFieldTypes() as $class) {
-            /** @var string|FieldInterface $class */
-            $types[] = ['value' => $class, 'label' => $class::displayName()];
-        }
-        usort($types, fn($a, $b) => strcasecmp($a['label'], $b['label']));
-
-        // Only surface the "Unused" toggle when there’s more than one unused
-        // field — filtering to a single result isn’t worth a control.
+        // Only list field types that are actually in use, and count unused
+        // fields — both in a single pass over the fields.
+        $usedTypes = [];
         $unusedCount = 0;
         foreach ($fieldsService->getAllFields() as $field) {
+            $usedTypes[$field::class] ??= $field->displayName();
             if (empty($fieldsService->findFieldUsages($field))) {
                 $unusedCount++;
             }
         }
 
+        $types = [];
+        foreach ($usedTypes as $value => $label) {
+            $types[] = ['value' => $value, 'label' => $label];
+        }
+        usort($types, fn($a, $b) => strcasecmp($a['label'], $b['label']));
+
         return $this->renderTemplate('content-tools/fields', [
             'fieldTypes' => $types,
+            // Only surface the "Unused" toggle when there’s more than one
+            // unused field — filtering to a single result isn’t worth a control.
             'showUnused' => $unusedCount > 1,
         ]);
     }

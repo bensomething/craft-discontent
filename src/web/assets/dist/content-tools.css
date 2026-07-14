@@ -21,3 +21,21 @@
 #ct-toolbar #ct-type {
     max-width: 220px;
 }
+
+/* Craft’s .tablepane pulls itself up with a negative top margin (meant for
+   when it sits flush inside a pane). Reset it so the toolbar’s margin below
+   the search bar is honored. */
+#ct-fields-table .tablepane {
+    margin-block-start: 0;
+}
+
+/* Double-clicking a row opens its editor; hint the affordance. */
+#ct-fields-table table.data tbody tr {
+    cursor: pointer;
+}
+
+/* Trim the content pane’s top padding on the settings screen so the lone
+   setting doesn’t float in dead space. */
+#ct-settings {
+    margin-block-start: calc(var(--m) * -1);
+}

@@ -59,6 +59,7 @@ class Plugin extends \craft\base\Plugin
 
         $item = parent::getCpNavItem();
         $item['label'] = Craft::t('content-tools', 'Content Tools');
+        $item['icon'] = 'hammer';
         $item['subnav'] = [
             'fields' => ['label' => Craft::t('content-tools', 'Fields'), 'url' => 'content-tools/fields'],
             'entry-types' => ['label' => Craft::t('content-tools', 'Entry Types'), 'url' => 'content-tools/entry-types'],

@@ -4,6 +4,7 @@
 {% set selectedNavItem = 'settings' %}
 
 {% block content %}
+  <div id="ct-settings">
     {% if readOnly %}
         <div class="pane">
             <p class="light">{{ "Administrative changes are disabled in this environment, so these settings can’t be edited here."|t('content-tools') }}</p>
@@ -31,4 +32,5 @@
             </div>
         {% endif %}
     </form>
+  </div>
 {% endblock %}

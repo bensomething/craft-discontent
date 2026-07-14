@@ -32,7 +32,34 @@
             this.addListener(this.$type, 'change', 'reload');
             this.addListener(this.$unused, 'change', 'reload');
 
+            // Delegated so it survives table rebuilds (the container element
+            // itself is never replaced, only its contents).
+            $(settings.tableContainer).on(
+                'dblclick',
+                'table.data tbody tr',
+                $.proxy(this, 'onRowDblClick')
+            );
+
             this.build();
+        },
+
+        onRowDblClick: function (ev) {
+            var href = $(ev.currentTarget).find('a[href*="/fields/edit/"]').attr('href') || '';
+            var match = href.match(/\/fields\/edit\/(\d+)/);
+            if (!match) {
+                return;
+            }
+
+            // Clear the text the double-click just selected.
+            if (window.getSelection) {
+                window.getSelection().removeAllRanges();
+            }
+
+            var slideout = new Craft.CpScreenSlideout('fields/edit-field', {
+                params: { fieldId: parseInt(match[1], 10) },
+            });
+            // Refresh the table if the field was saved, so changes show.
+            slideout.on('submit', $.proxy(this, 'reload'));
         },
 
         currentFilters: function () {
