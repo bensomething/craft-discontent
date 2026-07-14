@@ -1,5 +1,7 @@
 {% extends "_layouts/cp" %}
 
+{% do view.registerAssetBundle('bensomething\\contenttools\\web\\assets\\ContentToolsAsset') %}
+
 {% set title = "Content Tools"|t('content-tools') %}
 
 {% set crumbs = [

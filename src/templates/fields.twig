@@ -4,9 +4,14 @@
 {% set selectedNavItem = 'fields' %}
 
 {% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') %}
-{% do view.registerAssetBundle('bensomething\\contenttools\\web\\assets\\ContentToolsAsset') %}
 
 {% do view.registerTranslations('app', ['Handle', 'Name', 'Type', 'Used by', 'No usages', 'No results.', 'Search']) %}
+
+{% block actionButton %}
+    {% if craft.app.config.general.allowAdminChanges %}
+        <a href="{{ url('settings/fields/new') }}" class="btn submit add icon">{{ "New field"|t('app') }}</a>
+    {% endif %}
+{% endblock %}
 
 {% block content %}
     <div id="ct-toolbar" class="toolbar flex flex-nowrap">

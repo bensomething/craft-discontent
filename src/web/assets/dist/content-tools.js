@@ -32,11 +32,11 @@
             this.addListener(this.$type, 'change', 'reload');
             this.addListener(this.$unused, 'change', 'reload');
 
-            // Delegated so it survives table rebuilds (the container element
-            // itself is never replaced, only its contents).
-            $(settings.tableContainer).on(
+            // Delegated on the document so it survives both table rebuilds and
+            // Vue replacing the mount element.
+            Garnish.$doc.on(
                 'dblclick',
-                'table.data tbody tr',
+                settings.tableContainer + ' table.data tbody tr',
                 $.proxy(this, 'onRowDblClick')
             );
 

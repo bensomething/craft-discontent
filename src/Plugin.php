@@ -24,6 +24,11 @@ class Plugin extends \craft\base\Plugin
     public string $schemaVersion = '1.0.0';
     public bool $hasCpSettings = true;
 
+    // Required for getCpNavItem() to be honored — Craft gates plugin nav items
+    // on hasCpSection. The item only actually appears when getCpNavItem()
+    // returns non-null, i.e. when the showInMainNav setting is on.
+    public bool $hasCpSection = true;
+
     public function init(): void
     {
         parent::init();
