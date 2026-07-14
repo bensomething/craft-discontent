@@ -85,13 +85,20 @@
 
         build: function () {
             $(this.settings.tableContainer).empty();
-            this.table = new Craft.VueAdminTable({
+            var config = {
                 columns: this.settings.columns,
                 container: this.settings.tableContainer,
                 tableDataEndpoint: this.endpoint(),
                 emptyMessage: this.settings.emptyMessage,
                 search: false,
-            });
+            };
+            if (this.settings.deleteAction) {
+                config.deleteAction = this.settings.deleteAction;
+                if (this.settings.deleteConfirmationMessage) {
+                    config.deleteConfirmationMessage = this.settings.deleteConfirmationMessage;
+                }
+            }
+            this.table = new Craft.VueAdminTable(config);
         },
 
         reload: function () {

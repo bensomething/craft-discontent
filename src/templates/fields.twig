@@ -70,6 +70,9 @@
             searchSelector: '#ct-search',
             typeSelector: '#ct-type',
             unusedSelector: '#ct-unused',
+            {% if craft.app.config.general.allowAdminChanges %}
+            deleteAction: 'fields/delete-field',
+            {% endif %}
         });
     })();
 {% endjs %}

@@ -22,7 +22,7 @@ class FieldsController extends Controller
     public function beforeAction($action): bool
     {
         // Admin-only, but usable even when admin changes are disabled — the
-        // tool is read-only.
+        // tool is read-only (deletes go through Craft’s own admin-gated action).
         $this->requireAdmin(false);
         return parent::beforeAction($action);
     }

@@ -1,3 +1,19 @@
 {% extends "_layouts/cp" %}
 
 {% do view.registerAssetBundle('bensomething\\contenttools\\web\\assets\\ContentToolsAsset') %}
+
+{# Persistent in-page nav so the three pages are always reachable from one
+   another — independent of the optional main-nav item. #}
+{% set navItems = {
+    'entry-types': { label: "Entry Types"|t('content-tools'), url: url('content-tools/entry-types') },
+    'fields': { label: "Fields"|t('content-tools'), url: url('content-tools/fields') },
+    'settings': { label: "Settings"|t('content-tools'), url: url('content-tools/settings') },
+} %}
+
+{% block sidebar %}
+    {% include "_includes/nav" with {
+        label: "Content Tools"|t('content-tools'),
+        items: navItems,
+        selectedItem: selectedNavItem ?? null,
+    } only %}
+{% endblock %}
