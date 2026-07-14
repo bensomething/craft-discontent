@@ -12,6 +12,7 @@
 {% set fullPageForm = not readOnly %}
 
 {% block content %}
+  <div id="ct-settings">
     {% if readOnly %}
         <div class="pane">
             <p class="light">{{ "Administrative changes are disabled in this environment, so these settings can’t be edited here."|t('discontent') }}</p>
@@ -66,4 +67,5 @@
             disabled: readOnly,
         }) }}
     </div>
+  </div>
 {% endblock %}

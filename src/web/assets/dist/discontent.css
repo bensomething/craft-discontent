@@ -7,24 +7,12 @@
     margin-bottom: 24px;
 }
 
-/* On smaller screens: search on its own row, then the dropdown + switch below. */
-@media (max-width: 767px) {
-    #ct-toolbar {
-        flex-wrap: wrap;
-    }
-
-    #ct-toolbar > .texticon.search {
-        flex: 1 1 100%;
-    }
-
-    #ct-toolbar > .select {
-        flex: 1 1 auto;
-    }
-
-    #ct-toolbar #ct-type,
-    #ct-toolbar #ct-usage {
-        max-width: none;
-    }
+/* Size the dropdown to its content — the .select wrapper is width:100% by
+   default, which stretches it in the flex row and detaches the chevron. */
+#ct-toolbar > .select {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 220px;
 }
 
 #ct-toolbar .ct-unused-toggle {
@@ -38,8 +26,20 @@
     cursor: pointer;
 }
 
-#ct-toolbar #ct-type {
-    max-width: 220px;
+/* On smaller screens: search on its own row, then the dropdown + switch below. */
+@media (max-width: 767px) {
+    #ct-toolbar {
+        flex-wrap: wrap;
+    }
+
+    #ct-toolbar > .texticon.search {
+        flex: 1 1 100%;
+    }
+
+    #ct-toolbar > .select {
+        flex: 1 1 auto;
+        max-width: none;
+    }
 }
 
 /* Craft’s .tablepane pulls itself up with a negative top margin (meant for
@@ -56,3 +56,8 @@
     cursor: pointer;
 }
 
+/* Tighten the settings pane’s vertical padding so the short form doesn’t float
+   in dead space (top and bottom, matching the tighter side inset). */
+#ct-settings {
+    margin-block: calc(var(--s) * -1);
+}
