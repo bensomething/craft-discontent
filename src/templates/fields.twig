@@ -1,10 +1,12 @@
 {% extends "content-tools/_layout" %}
 {% import "_includes/forms" as forms %}
 
-{% set selectedNavItem = 'fields' %}
+{% set title = "Fields"|t('app') %}
+{% set crumbs = [
+    { label: "Settings"|t('app'), url: url('settings') },
+] %}
 
 {% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') %}
-
 {% do view.registerTranslations('app', ['Handle', 'Name', 'Type', 'Used by', 'No usages', 'No results.', 'Search']) %}
 
 {% block actionButton %}

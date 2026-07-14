@@ -1,7 +1,11 @@
 {% extends "content-tools/_layout" %}
 {% import "_includes/forms" as forms %}
 
-{% set selectedNavItem = 'settings' %}
+{% set title = "Content Tools"|t('content-tools') %}
+{% set crumbs = [
+    { label: "Settings"|t('app'), url: url('settings') },
+    { label: "Plugins"|t('app'), url: url('settings/plugins') },
+] %}
 
 {% block content %}
   <div id="ct-settings">
@@ -15,11 +19,11 @@
         {{ csrfInput() }}
         {{ actionInput('plugins/save-plugin-settings') }}
         {{ hiddenInput('pluginHandle', 'content-tools') }}
-        {{ redirectInput('content-tools/settings') }}
+        {{ redirectInput('settings/plugins/content-tools') }}
 
         {{ forms.lightswitchField({
             label: "Show in main navigation"|t('content-tools'),
-            instructions: "Adds a “Content Tools” item to the main control-panel nav (with a Fields / Entry Types / Settings subnav). Off by default — the tool is reached through this plugin’s gear in Settings → Plugins."|t('content-tools'),
+            instructions: "Adds a “Content Tools” item to the main control-panel nav, linking to the Fields and Entry Types pages. Off by default."|t('content-tools'),
             id: 'showInMainNav',
             name: 'settings[showInMainNav]',
             on: settings.showInMainNav,

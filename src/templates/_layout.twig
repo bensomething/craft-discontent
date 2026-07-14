@@ -1,24 +1,3 @@
 {% extends "_layouts/cp" %}
 
 {% do view.registerAssetBundle('bensomething\\contenttools\\web\\assets\\ContentToolsAsset') %}
-
-{% set title = "Content Tools"|t('content-tools') %}
-
-{% set crumbs = [
-    { label: "Settings"|t('app'), url: url('settings') },
-    { label: "Plugins"|t('app'), url: url('settings/plugins') },
-] %}
-
-{% set navItems = {
-    'entry-types': { label: "Entry Types"|t('content-tools'), url: 'content-tools/entry-types' },
-    'fields': { label: "Fields"|t('content-tools'), url: 'content-tools/fields' },
-    'settings': { label: "Settings"|t('content-tools'), url: 'content-tools/settings' },
-} %}
-
-{% block sidebar %}
-    {% include "_includes/nav" with {
-        label: title,
-        items: navItems,
-        selectedItem: selectedNavItem ?? null,
-    } only %}
-{% endblock %}
