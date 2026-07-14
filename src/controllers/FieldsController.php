@@ -28,17 +28,27 @@ class FieldsController extends Controller
 
     public function actionIndex(): Response
     {
+        $fieldsService = Craft::$app->getFields();
+
         $types = [];
-        foreach (Craft::$app->getFields()->getAllFieldTypes() as $class) {
+        foreach ($fieldsService->getAllFieldTypes() as $class) {
             /** @var string|FieldInterface $class */
             $types[] = ['value' => $class, 'label' => $class::displayName()];
         }
         usort($types, fn($a, $b) => strcasecmp($a['label'], $b['label']));
 
+        // Only surface the "Unused" toggle when there’s more than one unused
+        // field — filtering to a single result isn’t worth a control.
+        $unusedCount = 0;
+        foreach ($fieldsService->getAllFields() as $field) {
+            if (empty($fieldsService->findFieldUsages($field))) {
+                $unusedCount++;
+            }
+        }
+
         return $this->renderTemplate('content-tools/fields', [
-            'title' => Craft::t('content-tools', 'Fields'),
-            'selectedTab' => 'fields',
             'fieldTypes' => $types,
+            'showUnused' => $unusedCount > 1,
         ]);
     }
 

@@ -3,6 +3,8 @@
 #ct-toolbar {
     align-items: center;
     gap: 10px;
+    /* Match the breathing room below Craft’s native table search bar. */
+    margin-bottom: 24px;
 }
 
 #ct-toolbar .ct-unused-toggle {

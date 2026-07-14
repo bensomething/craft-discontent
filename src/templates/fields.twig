@@ -9,7 +9,7 @@
 {% do view.registerTranslations('app', ['Handle', 'Name', 'Type', 'Used by', 'No usages', 'No results.', 'Search']) %}
 
 {% block content %}
-    <div id="ct-toolbar" class="toolbar flex flex-nowrap" style="margin-bottom: 24px;">
+    <div id="ct-toolbar" class="toolbar flex flex-nowrap">
         <div class="flex-grow texticon search icon clearable">
             <input type="text" id="ct-search" class="text fullwidth" autocomplete="off"
                    placeholder="{{ 'Search'|t('app') }}" aria-label="{{ 'Search'|t('app') }}">
@@ -18,10 +18,12 @@
             id: 'ct-type',
             options: [{ label: 'All field types'|t('content-tools'), value: '' }]|merge(fieldTypes),
         }) }}
-        <div class="flex flex-nowrap ct-unused-toggle">
-            {{ forms.lightswitch({ id: 'ct-unused' }) }}
-            <label for="ct-unused">{{ 'Unused only'|t('content-tools') }}</label>
-        </div>
+        {% if showUnused ?? false %}
+            <div class="flex flex-nowrap ct-unused-toggle">
+                {{ forms.lightswitch({ id: 'ct-unused' }) }}
+                <label for="ct-unused">{{ 'Unused'|t('content-tools') }}</label>
+            </div>
+        {% endif %}
     </div>
 
     <div id="ct-fields-table"></div>
