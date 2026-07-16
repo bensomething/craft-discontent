@@ -77,6 +77,7 @@
             editAction: 'fields/edit-field',
             editParam: 'fieldId',
             editIdRegex: /\/fields\/edit\/(\d+)/,
+            readOnly: {{ craft.app.config.general.allowAdminChanges ? 'false' : 'true' }},
             {% if craft.app.config.general.allowAdminChanges %}
             deleteAction: 'fields/delete-field',
             {% endif %}

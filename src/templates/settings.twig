@@ -22,9 +22,9 @@
 
 {% block content %}
     {% if readOnly %}
-        <div class="pane">
-            <p class="light">{{ "Administrative changes are disabled in this environment, so these settings can’t be edited here."|t('discontent') }}</p>
-        </div>
+        <p class="warning with-icon">
+            {{ 'Administrative changes are disallowed in this environment.'|t('app') }}
+        </p>
     {% endif %}
 
     {{ actionInput('plugins/save-plugin-settings') }}

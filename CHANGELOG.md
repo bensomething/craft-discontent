@@ -8,3 +8,6 @@
 - Canonical pages at `/discontent/*` with an in-page sidebar; native Settings → Fields / Entry Types redirect there when **Replace native pages** is on.
 - Shareable filtered URLs — filter state is reflected in query params.
 - Settings: **Plugin name**, **Replace native pages**, **Show in main navigation**, and **Default view**.
+
+### Changed
+- Read-only environments (`allowAdminChanges` off): the Fields/Entry Types edit slideouts hide their Cancel/Save buttons — the native read-only notice stays, and Esc or a shade click dismisses the slideout.

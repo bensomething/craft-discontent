@@ -57,3 +57,10 @@
     cursor: pointer;
 }
 
+/* Read-only environment: the edit slideout can’t save, so hide its Cancel/Save
+   footer buttons. The read-only notice stays in the footer; Esc / shade-click
+   dismiss the slideout (wired up in discontent.js). */
+.ct-readonly-slideout .so-footer .btn {
+    display: none;
+}
+

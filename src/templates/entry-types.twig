@@ -69,6 +69,7 @@
             editAction: 'entry-types/edit',
             editParam: 'entryTypeId',
             editIdRegex: /\/entry-types\/(\d+)/,
+            readOnly: {{ craft.app.config.general.allowAdminChanges ? 'false' : 'true' }},
             {% if craft.app.config.general.allowAdminChanges %}
             deleteAction: 'entry-types/delete',
             deleteConfirmationMessage: Craft.t('app', 'Are you sure you want to delete “{name}” and all entries of that type?'),
