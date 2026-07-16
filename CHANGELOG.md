@@ -10,4 +10,4 @@
 - Settings: **Plugin name**, **Replace native pages**, **Show in main navigation**, and **Default view**.
 
 ### Changed
-- Read-only environments (`allowAdminChanges` off): the Fields/Entry Types edit slideouts hide their Cancel/Save buttons — the native read-only notice stays, and Esc or a shade click dismisses the slideout.
+- Read-only environments (`allowAdminChanges` off): the Fields/Entry Types edit slideouts hide their Save button and relabel Cancel as **Close**, keeping the native read-only notice. Esc or a shade click also dismiss the slideout.

@@ -11,22 +11,29 @@
 {# Full-page form → Save button in the top-right header + Cmd/Ctrl-S shortcut. #}
 {% set fullPageForm = not readOnly %}
 
+{# Read-only: render Craft’s native settings notice (the grey content-notice box
+   in a pane-header, same as Craft’s own plugin settings screens) via the CP
+   layout’s contentNotice slot, rather than hand-placing it in the content. #}
+{% block contentNotice %}
+    {% if readOnly %}{{ readOnlyNotice() }}{% endif %}
+{% endblock %}
+
 {# Page-scoped: tighten the content pane’s vertical padding so the short form
-   doesn’t float in dead space. Only loads on this page. #}
+   doesn’t float in dead space. In read-only the pane-header notice bleeds off
+   the pane’s top padding, so keep the top standard there (only trim the bottom)
+   — otherwise the header’s negative margin over-pulls and detaches. #}
 {% css %}
     #main-content > .content-pane,
     #main-content .content-pane {
+        {% if readOnly %}
+        padding-block-end: var(--m);
+        {% else %}
         padding-block: var(--m);
+        {% endif %}
     }
 {% endcss %}
 
 {% block content %}
-    {% if readOnly %}
-        <p class="warning with-icon">
-            {{ 'Administrative changes are disallowed in this environment.'|t('app') }}
-        </p>
-    {% endif %}
-
     {{ actionInput('plugins/save-plugin-settings') }}
     {{ hiddenInput('pluginHandle', 'discontent') }}
     {{ redirectInput('discontent/settings') }}

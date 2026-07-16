@@ -25,6 +25,14 @@ class Plugin extends \craft\base\Plugin
     public string $schemaVersion = '1.0.0';
     public bool $hasCpSettings = true;
 
+    // Craft normally hides a plugin’s Settings → Plugins entry (and forbids
+    // opening it) when admin changes are disallowed. It auto-enables read-only
+    // settings only for plugins using the default getSettingsResponse(); we
+    // override that, so declare it explicitly to keep the entry visible and
+    // viewable. getReadOnlySettingsResponse() sends it to our settings page,
+    // which already renders read-only.
+    public bool $hasReadOnlyCpSettings = true;
+
     // Craft only surfaces a plugin nav item when hasCpSection is true *and*
     // getCpNavItem() returns non-null — so the item appears only when the
     // showInMainNav setting is on.
@@ -54,6 +62,16 @@ class Plugin extends \craft\base\Plugin
     public function getSettingsResponse(): mixed
     {
         return Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('discontent/settings'));
+    }
+
+    /**
+     * Read-only environments: keep the Settings → Plugins entry usable by
+     * sending it to the same settings page, which renders read-only (fields
+     * disabled, with Craft’s read-only notice).
+     */
+    public function getReadOnlySettingsResponse(): mixed
+    {
+        return $this->getSettingsResponse();
     }
 
     public function getCpNavItem(): ?array

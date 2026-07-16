@@ -135,9 +135,10 @@
             // In read-only environments the native edit action returns no save
             // action (just a read-only notice), but Craft.CpScreenSlideout still
             // renders its Cancel/Save footer buttons because it defaults to a
-            // form container. Hide those buttons (via a marker class picked up in
-            // discontent.css) and, since the footer button is otherwise the only
-            // way out, let Esc / clicking the shade dismiss the slideout instead.
+            // form container. Hide the (non-functional) Save button via a marker
+            // class picked up in discontent.css, and repurpose the Cancel button
+            // as a plain "Close" — it already dismisses the slideout. Esc /
+            // shade-click work as extra dismissal paths.
             var slideoutSettings = { params: params };
             if (this.settings.readOnly) {
                 slideoutSettings.closeOnEsc = true;
@@ -147,6 +148,7 @@
             var slideout = new Craft.CpScreenSlideout(this.settings.editAction, slideoutSettings);
             if (this.settings.readOnly) {
                 slideout.$container.addClass('ct-readonly-slideout');
+                slideout.$cancelBtn.text(Craft.t('app', 'Close'));
             }
             slideout.on('submit', $.proxy(this, 'reload'));
         },
