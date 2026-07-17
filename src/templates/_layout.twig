@@ -2,9 +2,6 @@
 
 {% do view.registerAssetBundle('bensomething\\discontent\\web\\assets\\DiscontentAsset') %}
 
-{# The admin-defined plugin name stays the page title across every subpage; the
-   current page is shown by the highlighted sidebar item. Each page sets its own
-   crumbs ("<name> › <page>"). #}
 {% set pluginName = craft.app.plugins.getPlugin('discontent').name %}
 {% set title = pluginName %}
 

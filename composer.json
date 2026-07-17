@@ -1,6 +1,6 @@
 {
     "name": "bensomething/craft-discontent",
-    "description": "Adds field-type and “unused” filtering to admin-facing Fields and Entry Types screens in the Craft CMS control panel.",
+    "description": "Add type and “unused” filtering to Fields and Entry Types screens.",
     "type": "craft-plugin",
     "license": "MIT",
     "keywords": [
