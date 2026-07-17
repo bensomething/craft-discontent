@@ -1,6 +1,6 @@
 {
     "name": "bensomething/craft-discontent",
-    "description": "Add type and “unused” filtering to Fields and Entry Types screens.",
+    "description": "Filtering and slideout editing for fields and entry types.",
     "type": "craft-plugin",
     "license": "MIT",
     "keywords": [
