@@ -14,21 +14,21 @@ class Settings extends Model
 
     /**
      * Which page the top-level /discontent URL lands on.
-     * One of: 'fields', 'entry-types'.
+     * One of: 'sections', 'fields', 'entry-types'.
      */
     public string $defaultView = 'fields';
 
     /**
-     * Whether to replace Craft’s native Settings → Fields / Entry Types index
-     * pages with the enhanced filtering versions. When off, Craft’s native
-     * pages are used and the tool stays dormant.
+     * Whether to replace Craft’s native Settings → Sections / Fields / Entry
+     * Types index pages with the enhanced filtering versions. When off,
+     * Craft’s native pages are used and the tool stays dormant.
      */
     public bool $overrideNativePages = true;
 
     /**
-     * Whether to add a nav item to the main CP nav (with a Fields / Entry
-     * Types / Settings subnav). Off by default — the tool is reached through
-     * the plugin’s gear in Settings → Plugins.
+     * Whether to add a nav item to the main CP nav (with a Sections / Fields /
+     * Entry Types / Settings subnav). Off by default — the tool is reached
+     * through the plugin’s gear in Settings → Plugins.
      */
     public bool $showInMainNav = false;
 
@@ -37,7 +37,7 @@ class Settings extends Model
         return [
             [['pluginName'], 'string'],
             [['overrideNativePages', 'showInMainNav'], 'boolean'],
-            [['defaultView'], 'in', 'range' => ['fields', 'entry-types']],
+            [['defaultView'], 'in', 'range' => ['sections', 'fields', 'entry-types']],
         ];
     }
 

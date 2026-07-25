@@ -33,12 +33,16 @@
                 { label: 'CKEditor entries'|t('discontent'), value: 'ckeditor' },
             ],
             value: initialFilter ?? '',
+            inputAttributes: { aria: { label: 'Usage'|t('discontent') } },
         }) }}
-        {% if showUnused ?? false %}
-            <div class="flex flex-nowrap ct-unused-toggle">
-                {{ forms.lightswitch({ id: 'ct-unused', on: initialUnused ?? false }) }}
-                <label for="ct-unused">{{ 'Unused'|t('discontent') }}</label>
-            </div>
+        {# Omitted entirely when “Show all” is the only view that applies. #}
+        {% if views is not empty %}
+            {{ forms.select({
+                id: 'ct-view',
+                options: views,
+                value: initialView ?? '',
+                inputAttributes: { aria: { label: 'View'|t('discontent') } },
+            }) }}
         {% endif %}
     </div>
 
@@ -47,6 +51,8 @@
 
 {% js %}
     (() => {
+        const flag = Craft.Discontent.flag({{ checkIcon|json_encode|raw }});
+
         const columns = [
             { name: 'chip', title: Craft.t('app', 'Entry Type'), sortField: true },
             { name: '__slot:handle', title: Craft.t('app', 'Handle'), sortField: true },
@@ -55,6 +61,8 @@
                 title: Craft.t('app', 'Used by'),
                 callback: (value) => value || `<i class="light">${Craft.t('app', 'No usages')}</i>`,
             },
+            { name: 'slug', title: Craft.t('discontent', 'Show Slug'), callback: flag },
+            { name: 'status', title: Craft.t('discontent', 'Show Status'), callback: flag },
         ];
 
         new Craft.Discontent.FilterTable({
@@ -65,7 +73,8 @@
             searchSelector: '#ct-search',
             filterSelector: '#ct-usage',
             filterParam: 'usage',
-            unusedSelector: '#ct-unused',
+            viewSelector: '#ct-view',
+            viewParam: 'view',
             editAction: 'entry-types/edit',
             editParam: 'entryTypeId',
             editIdRegex: /\/entry-types\/(\d+)/,

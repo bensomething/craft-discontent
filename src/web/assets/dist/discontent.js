@@ -1,26 +1,41 @@
 /**
  * Discontent — a VueAdminTable driven by our own toolbar.
  *
- * The tool owns the toolbar (search box + filter dropdown + "Unused"
- * lightswitch) rather than injecting into Vue's rendered toolbar. Filter
- * state is passed to the server as query params on the table-data endpoint,
- * so all filtering happens server-side. `search` is disabled on the table
- * itself — our search input feeds the same endpoint param.
+ * The tool owns the toolbar (search box, filter dropdown, view dropdown) rather
+ * than injecting into Vue's rendered toolbar. Filter state is passed to the
+ * server as query params on the table-data endpoint, so all filtering happens
+ * server-side. `search` is disabled on the table itself — our search input
+ * feeds the same endpoint param.
  *
- * Shared by the Fields and Entry Types pages; per-page specifics (filter
- * param name, edit action) come in via settings.
+ * Shared by the Fields and Entry Types pages; per-page specifics (which
+ * controls exist, param names, edit action) come in via settings.
  */
 (function ($) {
     if (typeof Craft.Discontent === 'undefined') {
         Craft.Discontent = {};
     }
 
+    /**
+     * A yes/no column: a tick when the thing is on, a faint dash when it isn't
+     * — the dash is the quiet one, it's only holding the column's shape.
+     *
+     * Takes the icon markup because there's no iconSvg() in Twig; the pages
+     * pass it through from their controller.
+     */
+    Craft.Discontent.flag = function (checkIcon) {
+        return function (value) {
+            return value
+                ? '<div class="cp-icon small">' + checkIcon + '</div>'
+                : '<span class="ct-faint">&mdash;</span>';
+        };
+    };
+
     Craft.Discontent.FilterTable = Garnish.Base.extend({
         settings: null,
         table: null,
         $search: null,
         $filter: null,
-        $unused: null,
+        $view: null,
         searchTimeout: null,
 
         init: function (settings) {
@@ -28,12 +43,12 @@
 
             this.$search = $(settings.searchSelector);
             this.$filter = $(settings.filterSelector);
-            this.$unused = $(settings.unusedSelector);
+            this.$view = $(settings.viewSelector);
 
             this.addListener(this.$search, 'input', 'onSearchInput');
             this.addListener(this.$search, 'keydown', 'onSearchKeydown');
             this.addListener(this.$filter, 'change', 'reload');
-            this.addListener(this.$unused, 'change', 'reload');
+            this.addListener(this.$view, 'change', 'reload');
 
             // Delegated on the document so it survives both table rebuilds and
             // Vue replacing the mount element.
@@ -56,8 +71,9 @@
             if (filter) {
                 params[this.settings.filterParam || 'type'] = filter;
             }
-            if (this.$unused.hasClass('on')) {
-                params.unused = '1';
+            var view = this.$view.val();
+            if (view) {
+                params[this.settings.viewParam || 'view'] = view;
             }
             return params;
         },
@@ -82,6 +98,9 @@
                     config.deleteConfirmationMessage = this.settings.deleteConfirmationMessage;
                 }
             }
+            // Instance rows carry their edit route in the row data rather than
+            // in a link, so they're handled off the table's own row event.
+            config.onRowDoubleClicked = $.proxy(this, 'onInstanceDblClick');
             this.table = new Craft.VueAdminTable(config);
         },
 
@@ -111,8 +130,36 @@
             }
         },
 
+        /**
+         * Instance rows (the Fields page nests each field's layout instances
+         * under it) don't edit a field — an instance belongs to a layout, and
+         * its own settings (label, handle, instructions, conditions) are only
+         * editable in that layout's field layout designer. So open the layout's
+         * owner in a slideout and leave the rest to the user.
+         */
+        onInstanceDblClick: function (rowData) {
+            var instance = rowData ? rowData.instance : null;
+            if (!instance || !instance.slideout) {
+                return;
+            }
+
+            // Clear the text the double-click just selected.
+            if (window.getSelection) {
+                window.getSelection().removeAllRanges();
+            }
+
+            var params = {};
+            params[instance.slideout.param] = instance.slideout.id;
+            this.openSlideout(instance.slideout.action, params);
+        },
+
         onRowDblClick: function (ev) {
             if (!this.settings.editAction) {
+                return;
+            }
+            // Instance rows are handled by onInstanceDblClick (their link
+            // points at the owning layout, not a field).
+            if ($(ev.currentTarget).find('.ct-instance').length) {
                 return;
             }
             var regex = this.settings.editIdRegex;
@@ -132,6 +179,10 @@
             var params = {};
             params[this.settings.editParam] = parseInt(match[1], 10);
 
+            this.openSlideout(this.settings.editAction, params);
+        },
+
+        openSlideout: function (action, params) {
             // In read-only environments the native edit action returns no save
             // action (just a read-only notice), but Craft.CpScreenSlideout still
             // renders its Cancel/Save footer buttons because it defaults to a
@@ -145,12 +196,14 @@
                 slideoutSettings.closeOnShadeClick = true;
             }
 
-            var slideout = new Craft.CpScreenSlideout(this.settings.editAction, slideoutSettings);
+            var slideout = new Craft.CpScreenSlideout(action, slideoutSettings);
             if (this.settings.readOnly) {
                 slideout.$container.addClass('ct-readonly-slideout');
                 slideout.$cancelBtn.text(Craft.t('app', 'Close'));
             }
             slideout.on('submit', $.proxy(this, 'reload'));
+
+            return slideout;
         },
     });
 })(jQuery);

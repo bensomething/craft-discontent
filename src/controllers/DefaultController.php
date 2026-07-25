@@ -21,9 +21,11 @@ class DefaultController extends Controller
 
     public function actionIndex(): Response
     {
-        $view = Plugin::getInstance()->getSettings()->defaultView === 'entry-types'
-            ? 'entry-types'
-            : 'fields';
+        $view = match (Plugin::getInstance()->getSettings()->defaultView) {
+            'sections' => 'sections',
+            'entry-types' => 'entry-types',
+            default => 'fields',
+        };
 
         return $this->redirect(UrlHelper::cpUrl("discontent/$view"));
     }

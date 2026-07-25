@@ -20,15 +20,18 @@
     width: auto;
 }
 
-#ct-toolbar .ct-unused-toggle {
+#ct-toolbar .ct-toggle {
     align-items: center;
     gap: 8px;
     white-space: nowrap;
 }
 
-#ct-toolbar .ct-unused-toggle label {
+/* The label flips the switch (wired up in discontent.js — see bindToggleLabel);
+   don't let a double-click on it select the text. */
+#ct-toolbar .ct-toggle label {
     margin: 0;
     cursor: pointer;
+    user-select: none;
 }
 
 /* On smaller screens: search on its own row, then the dropdown + switch sit
@@ -47,14 +50,67 @@
    when it sits flush inside a pane). Reset it so the toolbar’s margin below
    the search bar is honored. */
 #ct-fields-table .tablepane,
-#ct-entry-types-table .tablepane {
+#ct-entry-types-table .tablepane,
+#ct-sections-table .tablepane {
     margin-block-start: 0;
 }
 
 /* Double-clicking a row opens its editor; hint the affordance. */
 #ct-fields-table table.data tbody tr,
-#ct-entry-types-table table.data tbody tr {
+#ct-entry-types-table table.data tbody tr,
+#ct-sections-table table.data tbody tr {
     cursor: pointer;
+}
+
+/* Nested instance rows, on both pages.
+
+   The admin table gives us no way to class a <tr> from its row data, so an
+   instance row carries a marker (.ct-instance) — in the Type cell on Fields,
+   in the first cell on Entry Types — and the row is styled off that. The ↳
+   arrow is what marks the nesting; no indent, like Lowdown. */
+
+/* Small muted asides: how many instances something has, how many more URI
+   formats there are. Never breaks mid-phrase — better to sit on its own line
+   than read as “+ 2 / instances”. */
+.ct-note {
+    color: var(--fg-subtle);
+    font-size: 0.85em;
+    white-space: nowrap;
+}
+
+/* Quieter than .light — for a placeholder that’s there to hold the column’s
+   shape, not to be read (the “—” in Show Slug / Show Status). */
+.ct-faint {
+    color: var(--fg-subtle);
+    opacity: 0.4;
+}
+
+/* Narrow screens: drop the count under the name rather than let it squeeze the
+   column. */
+@media (max-width: 767px) {
+    #ct-fields-table .ct-name,
+    #ct-fields-table .ct-name .ct-note,
+    #ct-entry-types-table .ct-note {
+        display: block;
+    }
+}
+
+/* The ↳ arrows, and the “Instance” label in the Fields table’s Type column,
+   sit back from their row. Craft’s smallest icon is still bigger than these
+   arrows want to be. */
+#ct-fields-table table.data tbody tr:has(.ct-instance) td:first-child .cp-icon,
+#ct-entry-types-table table.data tbody tr:has(.ct-instance) td:first-child .cp-icon,
+#ct-fields-table .ct-instance-label {
+    --icon-size: 13px;
+    color: var(--fg-subtle);
+    opacity: 0.7;
+}
+
+/* Craft’s icon SVGs don’t inherit their colour, so set the fill too. */
+#ct-fields-table table.data tbody tr:has(.ct-instance) td:first-child .cp-icon svg,
+#ct-entry-types-table table.data tbody tr:has(.ct-instance) td:first-child .cp-icon svg,
+#ct-fields-table .ct-instance-label .cp-icon svg {
+    fill: currentColor;
 }
 
 /* Read-only environment: the edit slideout can’t save, so hide its Save button.
