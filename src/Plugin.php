@@ -86,10 +86,14 @@ class Plugin extends \craft\base\Plugin
         // The shared prefix so the item stays selected (and its subnav open) on
         // every /discontent/* subpage.
         $item['url'] = 'discontent';
+        // No icons on the subnav items: Craft sizes them to fill their box, so
+        // they sit heavier than the labels want. Craft renders its own
+        // indicator in their place.
         $item['subnav'] = [
-            'entry-types' => ['label' => Craft::t('discontent', 'Entry Types'), 'url' => 'discontent/entry-types', 'icon' => 'files'],
-            'fields' => ['label' => Craft::t('discontent', 'Fields'), 'url' => 'discontent/fields', 'icon' => 'pen-to-square'],
-            'settings' => ['label' => Craft::t('discontent', 'Settings'), 'url' => 'discontent/settings', 'icon' => 'gear'],
+            'sections' => ['label' => Craft::t('discontent', 'Sections'), 'url' => 'discontent/sections'],
+            'entry-types' => ['label' => Craft::t('discontent', 'Entry Types'), 'url' => 'discontent/entry-types'],
+            'fields' => ['label' => Craft::t('discontent', 'Fields'), 'url' => 'discontent/fields'],
+            'settings' => ['label' => Craft::t('discontent', 'Settings'), 'url' => 'discontent/settings'],
         ];
 
         return $item;
@@ -105,6 +109,7 @@ class Plugin extends \craft\base\Plugin
                 // The bare prefix redirects to the configured default view so
                 // the landing URL is a real subpage (and highlights its subnav).
                 $event->rules['discontent'] = 'discontent/default/index';
+                $event->rules['discontent/sections'] = 'discontent/sections/index';
                 $event->rules['discontent/fields'] = 'discontent/fields/index';
                 $event->rules['discontent/entry-types'] = 'discontent/entry-types/index';
                 $event->rules['discontent/settings'] = 'discontent/settings/index';
@@ -113,6 +118,7 @@ class Plugin extends \craft\base\Plugin
                 // (Settings read here, not in init(), so it reflects saved
                 // settings reliably.)
                 if ($this->getSettings()->overrideNativePages) {
+                    $event->rules['settings/sections'] = 'discontent/sections/redirect';
                     $event->rules['settings/fields'] = 'discontent/fields/redirect';
                     $event->rules['settings/entry-types'] = 'discontent/entry-types/redirect';
                 }
