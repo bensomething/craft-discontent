@@ -1,4 +1,6 @@
 .DS_Store
 /vendor
 /node_modules
+composer.lock
+/.phpunit.cache
 /.claude/settings.local.json

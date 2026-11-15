@@ -21,12 +21,21 @@
         "craftcms/cms": "^6.0.0-beta.1"
     },
     "require-dev": {
-        "craftcms/ecs": "dev-main",
-        "craftcms/phpstan": "dev-main"
+        "inertiajs/inertia-laravel": "^3.1",
+        "larastan/larastan": "^3.13",
+        "laravel/pint": "^1.22",
+        "orchestra/testbench": "^11.0",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^12.5"
     },
     "autoload": {
         "psr-4": {
             "bensomething\\discontent\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "bensomething\\discontent\\tests\\": "tests/"
         }
     },
     "extra": {
@@ -35,20 +44,20 @@
         "developer": "Ben Smith",
         "developerUrl": "https://bensomething.com",
         "documentationUrl": "https://github.com/bensomething/craft-discontent",
-        "changelogUrl": "https://raw.githubusercontent.com/bensomething/craft-discontent/develop/CHANGELOG.md",
+        "changelogUrl": "https://raw.githubusercontent.com/bensomething/craft-discontent/2.x/CHANGELOG.md",
         "class": "bensomething\\discontent\\Plugin"
     },
     "config": {
         "allow-plugins": {
-            "yiisoft/yii2-composer": true,
             "craftcms/plugin-installer": true
         }
     },
     "scripts": {
-        "check-cs": "ecs check --ansi",
-        "fix-cs": "ecs check --ansi --fix",
+        "check-cs": "pint --test",
+        "fix-cs": "pint",
         "phpstan": "phpstan --memory-limit=1G",
-        "test:slideout": "@php tests/slideout-assumptions.php",
-        "test:index": "@php tests/index-assumptions.php"
-    }
+        "test": "phpunit --colors=always"
+    },
+    "minimum-stability": "beta",
+    "prefer-stable": true
 }
