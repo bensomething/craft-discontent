@@ -80,6 +80,12 @@ class Plugin extends \craft\base\Plugin
             return null;
         }
 
+        // Every page behind the item requires an admin, so a user with only
+        // the plugin's access permission would get a nav full of dead links.
+        if (!Craft::$app->getUser()->getIsAdmin()) {
+            return null;
+        }
+
         $item = parent::getCpNavItem();
         $item['label'] = $this->name;
         $item['icon'] = 'hammer';
