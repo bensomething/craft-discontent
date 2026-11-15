@@ -47,7 +47,19 @@ readonly class EntryTypesController
 
     private const string VIEW = 'view';
 
-    private const array VIEWS = ['unused', 'instances', 'slugs', 'statuses', 'post-dates', 'expiry-dates'];
+    /** Each shown-field view and its opposite, by the entry type property they test. */
+    private const array SHOWN_FIELDS = [
+        'slugs' => 'showSlugField',
+        'statuses' => 'showStatusField',
+        'post-dates' => 'showPostDateField',
+        'expiry-dates' => 'showExpiryDateField',
+    ];
+
+    private const array VIEWS = [
+        'unused', 'instances',
+        'slugs', 'no-slugs', 'statuses', 'no-statuses',
+        'post-dates', 'no-post-dates', 'expiry-dates', 'no-expiry-dates',
+    ];
 
     private bool $readOnly;
 
@@ -58,7 +70,7 @@ readonly class EntryTypesController
         $this->readOnly = ! $generalConfig->allowAdminChanges;
     }
 
-    /** The page, with any `?usage=` and `?view=` applied, so a filtered link can be shared. */
+    /** The page, with any `?search=`, `?usage=` and `?view=` applied, so a filtered link can be shared. */
     public function index(Request $request): CpScreenResponse
     {
         $values = $this->filterValues($request->query());
@@ -81,11 +93,11 @@ readonly class EntryTypesController
         ]);
     }
 
-    /** One page of rows, for the table. Filters arrive in the query string, the rest posted. */
+    /** One page of rows, for the table. Search and filters arrive in the query string, paging and sorting posted. */
     public function data(TableRequest $request): JsonResponse
     {
         $filters = $this->filterValues($request->query());
-        $search = mb_strtolower(trim((string) $request->search()));
+        $search = mb_strtolower($filters['search']);
         $descending = $request->sortDir() === SORT_DESC;
         $byHandle = $request->orderBy() === 'handle';
 
@@ -134,6 +146,7 @@ readonly class EntryTypesController
             ...(count($usageOptions) > 2 ? $this->filterField(t('Usage', category: 'discontent'), self::USAGE, $usageOptions) : []),
             ...$this->filterField(t('View', category: 'discontent'), self::VIEW, $this->viewOptions($values[self::VIEW])),
         ];
+        array_unshift($filters, $this->searchField(count($filters)));
 
         $table = Table::make($this->tableKey('entry-types', $values))
             ->columns([
@@ -146,7 +159,6 @@ readonly class EntryTypesController
                 ['key' => 'expiryDate', 'label' => t('Expiry Date', category: 'discontent')],
             ])
             ->dataUrl(route('discontent.entry-types.data', array_filter($values)))
-            ->searchable()
             ->emptyMessage(t('No entry types match these filters.', category: 'discontent'))
             ->unless($this->readOnly, fn (Table $table) => $table
                 ->createAction(t('New entry type', category: 'discontent'), route('craft.cp.settings.entry-types.create'))
@@ -160,13 +172,14 @@ readonly class EntryTypesController
      * The filters from a query string or a refresh, with anything unknown dropped.
      *
      * @param  array<array-key, mixed>  $input
-     * @return array{usage: string, view: string}
+     * @return array{search: string, usage: string, view: string}
      */
     private function filterValues(array $input): array
     {
         $kinds = [EntryTypeUsages::KIND_SECTION, EntryTypeUsages::KIND_MATRIX, EntryTypeUsages::KIND_CKEDITOR, EntryTypeUsages::KIND_FIELD];
 
         return [
+            'search' => $this->searchValue($input),
             self::USAGE => $this->allowedValue($input, self::USAGE, $kinds),
             self::VIEW => $this->allowedValue($input, self::VIEW, self::VIEWS),
         ];
@@ -199,48 +212,43 @@ readonly class EntryTypesController
     }
 
     /**
-     * Each view only where it splits the list (filtering to all of them says nothing),
-     * plus whichever is selected.
+     * Unused and Has instances where they have something to show, then a Has / No pair
+     * per shown field (see {@see viewPair()}), plus whichever is selected.
      *
-     * @return list<array{value: string, label: string}>
+     * @return list<array{value: string, label: string, group?: string}>
      */
     private function viewOptions(string $selected): array
     {
         /** @var Collection<int, EntryType> $all */
         $all = EntryTypes::getAllEntryTypes();
         $total = $all->count();
-        $splits = fn (int $count) => $count > 0 && $count < $total;
-
-        $available = [
-            'unused' => $all->contains(fn (EntryType $type) => ! $this->usages->isUsed((int) $type->id)),
-            'instances' => $this->usages->hasInstances(),
-            'slugs' => $splits($all->filter(fn (EntryType $type) => (bool) $type->showSlugField)->count()),
-            'statuses' => $splits($all->filter(fn (EntryType $type) => (bool) $type->showStatusField)->count()),
-            'post-dates' => $splits($all->filter(fn (EntryType $type) => (bool) $type->showPostDateField)->count()),
-            'expiry-dates' => $splits($all->filter(fn (EntryType $type) => (bool) $type->showExpiryDateField)->count()),
-        ];
-
-        $labels = [
-            'unused' => t('Unused', category: 'discontent'),
-            'instances' => t('Has instances', category: 'discontent'),
-            'slugs' => t('Has slugs', category: 'discontent'),
-            'statuses' => t('Has statuses', category: 'discontent'),
-            'post-dates' => t('Has post dates', category: 'discontent'),
-            'expiry-dates' => t('Has expiry dates', category: 'discontent'),
-        ];
+        $count = fn (string $property) => $all->filter(fn (EntryType $type) => (bool) $type->$property)->count();
 
         $options = [['value' => '', 'label' => t('Show all', category: 'discontent')]];
 
-        foreach ($labels as $view => $label) {
-            if ($available[$view] || $selected === $view) {
-                $options[] = ['value' => $view, 'label' => $label];
-            }
+        if ($selected === 'unused' || $all->contains(fn (EntryType $type) => ! $this->usages->isUsed((int) $type->id))) {
+            $options[] = ['value' => 'unused', 'label' => t('Unused', category: 'discontent')];
+        }
+
+        if ($selected === 'instances' || $this->usages->hasInstances()) {
+            $options[] = ['value' => 'instances', 'label' => t('Has instances', category: 'discontent')];
+        }
+
+        $pairs = [
+            'slugs' => [t('Slug', category: 'discontent'), t('Has slug', category: 'discontent'), t('No slug', category: 'discontent')],
+            'statuses' => [t('Status', category: 'discontent'), t('Has status', category: 'discontent'), t('No status', category: 'discontent')],
+            'post-dates' => [t('Post Date', category: 'discontent'), t('Has post date', category: 'discontent'), t('No post date', category: 'discontent')],
+            'expiry-dates' => [t('Expiry Date', category: 'discontent'), t('Has expiry date', category: 'discontent'), t('No expiry date', category: 'discontent')],
+        ];
+
+        foreach ($pairs as $view => [$group, $has, $no]) {
+            array_push($options, ...$this->viewPair($group, [$view, $has], ["no-$view", $no], $count(self::SHOWN_FIELDS[$view]), $total, $selected));
         }
 
         return $options;
     }
 
-    /** @param array{usage: string, view: string} $filters */
+    /** @param array{search: string, usage: string, view: string} $filters */
     private function matchesFilters(EntryType $type, array $filters): bool
     {
         $id = (int) $type->id;
@@ -249,13 +257,18 @@ readonly class EntryTypesController
             return false;
         }
 
-        return match ($filters[self::VIEW]) {
+        $view = $filters[self::VIEW];
+
+        // A shown-field view, or its "no-" opposite.
+        $negated = str_starts_with($view, 'no-');
+        $shown = self::SHOWN_FIELDS[$negated ? substr($view, 3) : $view] ?? null;
+        if ($shown !== null) {
+            return (bool) $type->$shown !== $negated;
+        }
+
+        return match ($view) {
             'unused' => ! $this->usages->isUsed($id),
             'instances' => $this->usages->instances($id) !== [],
-            'slugs' => (bool) $type->showSlugField,
-            'statuses' => (bool) $type->showStatusField,
-            'post-dates' => (bool) $type->showPostDateField,
-            'expiry-dates' => (bool) $type->showExpiryDateField,
             default => true,
         };
     }

@@ -47,7 +47,7 @@ readonly class FieldsController
 
     private const string VIEW = 'view';
 
-    private const array VIEWS = ['unused', 'instances', 'keywords'];
+    private const array VIEWS = ['unused', 'instances', 'keywords', 'no-keywords'];
 
     private bool $readOnly;
 
@@ -58,7 +58,7 @@ readonly class FieldsController
         $this->readOnly = ! $generalConfig->allowAdminChanges;
     }
 
-    /** The page, with any `?type=` and `?view=` applied, so a filtered link can be shared. */
+    /** The page, with any `?search=`, `?type=` and `?view=` applied, so a filtered link can be shared. */
     public function index(Request $request): CpScreenResponse
     {
         $values = $this->filterValues($request->query());
@@ -81,11 +81,11 @@ readonly class FieldsController
         ]);
     }
 
-    /** One page of rows, for the table. Filters arrive in the query string, the rest posted. */
+    /** One page of rows, for the table. Search and filters arrive in the query string, paging and sorting posted. */
     public function data(TableRequest $request): JsonResponse
     {
         $filters = $this->filterValues($request->query());
-        $search = mb_strtolower(trim((string) $request->search()));
+        $search = mb_strtolower($filters['search']);
 
         $fields = $this->allFields()
             ->filter(fn (FieldInterface $field) => $this->matchesFilters($field, $filters))
@@ -123,7 +123,7 @@ readonly class FieldsController
         ]);
     }
 
-    /** @param array{type: string, view: string} $values */
+    /** @param array{search: string, type: string, view: string} $values */
     private function ui(array $values): Ui
     {
         $typeOptions = $this->typeOptions();
@@ -133,6 +133,7 @@ readonly class FieldsController
             ...(count($typeOptions) > 2 ? $this->filterField(t('Field Type', category: 'discontent'), self::TYPE, $typeOptions) : []),
             ...$this->filterField(t('View', category: 'discontent'), self::VIEW, $this->viewOptions($values[self::VIEW])),
         ];
+        array_unshift($filters, $this->searchField(count($filters)));
 
         $table = Table::make($this->tableKey('fields', $values))
             ->columns([
@@ -143,7 +144,6 @@ readonly class FieldsController
                 ['key' => 'keywords', 'label' => t('Used for keywords', category: 'discontent')],
             ])
             ->dataUrl(route('discontent.fields.data', array_filter($values)))
-            ->searchable()
             ->emptyMessage(t('No fields match these filters.', category: 'discontent'))
             ->unless($this->readOnly, fn (Table $table) => $table
                 ->createAction(t('New field', category: 'discontent'), route('craft.cp.settings.fields.create'))
@@ -155,11 +155,12 @@ readonly class FieldsController
 
     /**
      * @param  array<array-key, mixed>  $input
-     * @return array{type: string, view: string}
+     * @return array{search: string, type: string, view: string}
      */
     private function filterValues(array $input): array
     {
         return [
+            'search' => $this->searchValue($input),
             self::TYPE => $this->allowedValue($input, self::TYPE, array_values($this->allFields()->map(fn (FieldInterface $field) => $field::class)->unique()->all())),
             self::VIEW => $this->allowedValue($input, self::VIEW, self::VIEWS),
         ];
@@ -190,40 +191,36 @@ readonly class FieldsController
     }
 
     /**
-     * Each view only where it has something to show (and, for keywords, where it splits
-     * the list), plus whichever is selected.
+     * Unused and Has instances where they have something to show, then the Keywords pair
+     * (see {@see viewPair()}), plus whichever is selected.
      *
-     * @return list<array{value: string, label: string}>
+     * @return list<array{value: string, label: string, group?: string}>
      */
     private function viewOptions(string $selected): array
     {
         $fields = $this->allFields();
-        $searchable = $fields->filter(fn (FieldInterface $field) => (bool) $field->searchable)->count();
-
-        $available = [
-            'unused' => $fields->contains(fn (FieldInterface $field) => $this->scan->usageCount($field) === 0),
-            'instances' => $this->scan->hasInstances(),
-            'keywords' => $searchable > 0 && $searchable < $fields->count(),
-        ];
-
-        $labels = [
-            'unused' => t('Unused', category: 'discontent'),
-            'instances' => t('Has instances', category: 'discontent'),
-            'keywords' => t('Used for keywords', category: 'discontent'),
-        ];
 
         $options = [['value' => '', 'label' => t('Show all', category: 'discontent')]];
 
-        foreach ($labels as $view => $label) {
-            if ($available[$view] || $selected === $view) {
-                $options[] = ['value' => $view, 'label' => $label];
-            }
+        if ($selected === 'unused' || $fields->contains(fn (FieldInterface $field) => $this->scan->usageCount($field) === 0)) {
+            $options[] = ['value' => 'unused', 'label' => t('Unused', category: 'discontent')];
         }
 
-        return $options;
+        if ($selected === 'instances' || $this->scan->hasInstances()) {
+            $options[] = ['value' => 'instances', 'label' => t('Has instances', category: 'discontent')];
+        }
+
+        return [...$options, ...$this->viewPair(
+            t('Keywords', category: 'discontent'),
+            ['keywords', t('Used for keywords', category: 'discontent')],
+            ['no-keywords', t('Not used for keywords', category: 'discontent')],
+            $fields->filter(fn (FieldInterface $field) => (bool) $field->searchable)->count(),
+            $fields->count(),
+            $selected,
+        )];
     }
 
-    /** @param array{type: string, view: string} $filters */
+    /** @param array{search: string, type: string, view: string} $filters */
     private function matchesFilters(FieldInterface $field, array $filters): bool
     {
         if ($filters[self::TYPE] !== '' && $field::class !== $filters[self::TYPE]) {
@@ -234,6 +231,7 @@ readonly class FieldsController
             'unused' => $this->scan->usageCount($field) === 0,
             'instances' => $this->scan->instances((string) $field->uid) !== [],
             'keywords' => (bool) $field->searchable,
+            'no-keywords' => ! $field->searchable,
             default => true,
         };
     }

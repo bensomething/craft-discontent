@@ -56,9 +56,9 @@ final class FieldsPageTest extends TestCase
     {
         $ui = $this->ui();
 
-        $this->assertSame(['type', 'view'], array_keys($ui['fields']));
+        $this->assertSame(['search', 'type', 'view'], array_keys($ui['fields']));
         $this->assertSame(['', Dropdown::class, PlainText::class], $ui['fields']['type']);
-        $this->assertSame(['', 'unused', 'instances', 'keywords'], $ui['fields']['view']);
+        $this->assertSame(['', 'unused', 'instances', 'keywords', 'no-keywords'], $ui['fields']['view']);
     }
 
     public function test_every_field_by_name(): void
@@ -78,6 +78,7 @@ final class FieldsPageTest extends TestCase
         // With Body's instance nested under it.
         $this->assertSame(['Body', 'Intro'], $this->names(['view' => 'instances']));
         $this->assertSame(['Body'], $this->names(['view' => 'keywords']));
+        $this->assertSame(['Colour', 'Summary'], $this->names(['view' => 'no-keywords']));
     }
 
     public function test_the_instances_view_nests_each_instance_under_its_field(): void
@@ -108,8 +109,8 @@ final class FieldsPageTest extends TestCase
 
     public function test_search_finds_a_field_by_an_instance_handle_or_its_type(): void
     {
-        $this->assertSame(['Body'], $this->names([], ['search' => 'INTRO']));
-        $this->assertSame(['Colour'], $this->names([], ['search' => 'dropdown']));
+        $this->assertSame(['Body'], $this->names(['search' => 'INTRO']));
+        $this->assertSame(['Colour'], $this->names(['search' => 'dropdown']));
     }
 
     public function test_sorting_by_type(): void

@@ -41,7 +41,7 @@ readonly class SectionsController
 
     private const string VIEW = 'view';
 
-    private const array VIEWS = ['urls', 'no-urls', 'versioned'];
+    private const array VIEWS = ['urls', 'no-urls', 'versioned', 'unversioned'];
 
     private bool $readOnly;
 
@@ -50,7 +50,7 @@ readonly class SectionsController
         $this->readOnly = ! $generalConfig->allowAdminChanges;
     }
 
-    /** The page, with any `?type=` and `?view=` applied, so a filtered link can be shared. */
+    /** The page, with any `?search=`, `?type=` and `?view=` applied, so a filtered link can be shared. */
     public function index(Request $request): CpScreenResponse
     {
         $values = $this->filterValues($request->query());
@@ -73,11 +73,11 @@ readonly class SectionsController
         ]);
     }
 
-    /** One page of rows, for the table. Filters arrive in the query string, the rest posted. */
+    /** One page of rows, for the table. Search and filters arrive in the query string, paging and sorting posted. */
     public function data(TableRequest $request): JsonResponse
     {
         $filters = $this->filterValues($request->query());
-        $search = mb_strtolower(trim((string) $request->search()));
+        $search = mb_strtolower($filters['search']);
 
         $sections = $this->allSections()
             ->filter(fn (Section $section) => $this->matchesFilters($section, $filters))
@@ -101,7 +101,7 @@ readonly class SectionsController
         ]);
     }
 
-    /** @param array{type: string, view: string} $values */
+    /** @param array{search: string, type: string, view: string} $values */
     private function ui(array $values): Ui
     {
         $typeOptions = $this->typeOptions($values[self::TYPE]);
@@ -111,6 +111,7 @@ readonly class SectionsController
             ...(count($typeOptions) > 2 ? $this->filterField(t('Section Type', category: 'discontent'), self::TYPE, $typeOptions) : []),
             ...$this->filterField(t('View', category: 'discontent'), self::VIEW, $this->viewOptions($values[self::VIEW])),
         ];
+        array_unshift($filters, $this->searchField(count($filters)));
 
         $table = Table::make($this->tableKey('sections', $values))
             ->columns([
@@ -121,7 +122,6 @@ readonly class SectionsController
                 ['key' => 'versioning', 'label' => t('Versioning', category: 'discontent')],
             ])
             ->dataUrl(route('discontent.sections.data', array_filter($values)))
-            ->searchable()
             ->emptyMessage(t('No sections match these filters.', category: 'discontent'))
             ->unless($this->readOnly, fn (Table $table) => $table
                 ->createAction(t('New section', category: 'discontent'), route('craft.cp.settings.sections.create'))
@@ -133,11 +133,12 @@ readonly class SectionsController
 
     /**
      * @param  array<array-key, mixed>  $input
-     * @return array{type: string, view: string}
+     * @return array{search: string, type: string, view: string}
      */
     private function filterValues(array $input): array
     {
         return [
+            'search' => $this->searchValue($input),
             self::TYPE => $this->allowedValue($input, self::TYPE, array_column(SectionType::cases(), 'value')),
             self::VIEW => $this->allowedValue($input, self::VIEW, self::VIEWS),
         ];
@@ -177,34 +178,38 @@ readonly class SectionsController
     }
 
     /**
-     * Each view only where it splits the list (filtering to all of them says nothing),
-     * plus whichever is selected.
+     * A URLs pair and a Versioning pair (see {@see viewPair()}), plus whichever is
+     * selected.
      *
-     * @return list<array{value: string, label: string}>
+     * @return list<array{value: string, label: string, group?: string}>
      */
     private function viewOptions(string $selected): array
     {
         $sections = $this->allSections();
         $total = $sections->count();
-        $routed = $sections->filter(fn (Section $section) => $this->hasUrls($section))->count();
-        $versioned = $sections->filter(fn (Section $section) => $section->enableVersioning)->count();
-        $splits = fn (int $count) => $count > 0 && $count < $total;
 
-        $options = [['value' => '', 'label' => t('Show all', category: 'discontent')]];
-
-        if ($splits($routed) || in_array($selected, ['urls', 'no-urls'], true)) {
-            $options[] = ['value' => 'urls', 'label' => t('Has URLs', category: 'discontent')];
-            $options[] = ['value' => 'no-urls', 'label' => t('No URLs', category: 'discontent')];
-        }
-
-        if ($splits($versioned) || $selected === 'versioned') {
-            $options[] = ['value' => 'versioned', 'label' => t('Has versioning', category: 'discontent')];
-        }
-
-        return $options;
+        return [
+            ['value' => '', 'label' => t('Show all', category: 'discontent')],
+            ...$this->viewPair(
+                t('URLs', category: 'discontent'),
+                ['urls', t('Has URLs', category: 'discontent')],
+                ['no-urls', t('No URLs', category: 'discontent')],
+                $sections->filter(fn (Section $section) => $this->hasUrls($section))->count(),
+                $total,
+                $selected,
+            ),
+            ...$this->viewPair(
+                t('Versioning', category: 'discontent'),
+                ['versioned', t('Has versioning', category: 'discontent')],
+                ['unversioned', t('No versioning', category: 'discontent')],
+                $sections->filter(fn (Section $section) => $section->enableVersioning)->count(),
+                $total,
+                $selected,
+            ),
+        ];
     }
 
-    /** @param array{type: string, view: string} $filters */
+    /** @param array{search: string, type: string, view: string} $filters */
     private function matchesFilters(Section $section, array $filters): bool
     {
         if ($filters[self::TYPE] !== '' && $section->type?->value !== $filters[self::TYPE]) {
@@ -215,6 +220,7 @@ readonly class SectionsController
             'urls' => $this->hasUrls($section),
             'no-urls' => ! $this->hasUrls($section),
             'versioned' => $section->enableVersioning,
+            'unversioned' => ! $section->enableVersioning,
             default => true,
         };
     }
@@ -292,12 +298,18 @@ readonly class SectionsController
         }
 
         $formats = array_keys($formats);
-        $html = Html::tag('code', Html::encode((string) $formats[0]));
+
+        // Long formats are cut off with an ellipsis, in full on hover, so one can't
+        // stretch the table past the page.
+        $html = Html::tag('code', Html::encode((string) $formats[0]), [
+            'title' => (string) $formats[0],
+            'style' => 'display: block; max-width: 20rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap',
+        ]);
 
         if (count($formats) > 1) {
             $html .= Html::tag('span', Html::encode(t('+ {count, number} more', ['count' => count($formats) - 1], 'discontent')), ['class' => 'light']);
         }
 
-        return ['html' => Html::tag('span', $html, ['class' => 'flex gap-2 items-center'])];
+        return ['html' => Html::tag('span', $html, ['class' => 'flex gap-2 items-center', 'style' => 'min-width: 0'])];
     }
 }

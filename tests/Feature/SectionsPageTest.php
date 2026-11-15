@@ -41,7 +41,7 @@ final class SectionsPageTest extends TestCase
         $fields = $this->ui()['fields'];
 
         $this->assertSame(['', 'single', 'channel', 'structure'], $fields['type']);
-        $this->assertSame(['', 'urls', 'no-urls', 'versioned'], $fields['view']);
+        $this->assertSame(['', 'urls', 'no-urls', 'versioned', 'unversioned'], $fields['view']);
     }
 
     public function test_every_section_by_name(): void
@@ -61,6 +61,7 @@ final class SectionsPageTest extends TestCase
         $this->assertSame(['Docs', 'News'], $this->names(['view' => 'urls']));
         $this->assertSame(['About'], $this->names(['view' => 'no-urls']));
         $this->assertSame(['Docs', 'News'], $this->names(['view' => 'versioned']));
+        $this->assertSame(['About'], $this->names(['view' => 'unversioned']));
     }
 
     public function test_the_columns(): void
@@ -70,13 +71,13 @@ final class SectionsPageTest extends TestCase
         $this->assertSame('Single', $about['type']);
         $this->assertSame('No URLs', $about['urls']);
         $this->assertSame('—', $about['versioning']);
-        $this->assertStringContainsString('<code>docs/{slug}</code>', $docs['urls']['html']);
+        $this->assertMatchesRegularExpression('#<code [^>]*title="docs/\{slug\}"[^>]*>docs/\{slug\}</code>#', $docs['urls']['html']);
         $this->assertSame('check', $docs['versioning']['icon']);
     }
 
     public function test_search_matches_the_type_too(): void
     {
-        $this->assertSame(['Docs'], $this->names([], ['search' => 'STRUCT']));
+        $this->assertSame(['Docs'], $this->names(['search' => 'STRUCT']));
     }
 
     public function test_sorting_by_type(): void

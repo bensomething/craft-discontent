@@ -59,9 +59,13 @@ final class EntryTypesPageTest extends TestCase
     {
         $ui = $this->ui();
 
-        $this->assertSame(['usage', 'view'], array_keys($ui['fields']));
+        $this->assertSame(['search', 'usage', 'view'], array_keys($ui['fields']));
         $this->assertSame(['', 'section', 'matrix'], $ui['fields']['usage']);
-        $this->assertSame(['', 'unused', 'instances', 'slugs', 'statuses', 'post-dates', 'expiry-dates'], $ui['fields']['view']);
+        $this->assertSame([
+            '', 'unused', 'instances',
+            'slugs', 'no-slugs', 'statuses', 'no-statuses',
+            'post-dates', 'no-post-dates', 'expiry-dates', 'no-expiry-dates',
+        ], $ui['fields']['view']);
         $this->assertStringContainsString('/discontent/entry-types/data', (string) $ui['dataUrl']);
     }
 
@@ -91,6 +95,9 @@ final class EntryTypesPageTest extends TestCase
         $this->assertSame(['Article', 'Block'], $this->names(['view' => 'statuses']));
         $this->assertSame(['Article', 'Block'], $this->names(['view' => 'post-dates']));
         $this->assertSame(['Article', 'Orphan'], $this->names(['view' => 'expiry-dates']));
+        $this->assertSame(['Orphan'], $this->names(['view' => 'no-slugs']));
+        $this->assertSame(['Orphan'], $this->names(['view' => 'no-post-dates']));
+        $this->assertSame(['Block'], $this->names(['view' => 'no-expiry-dates']));
     }
 
     public function test_the_instances_view_nests_each_instance_under_its_entry_type(): void
@@ -111,8 +118,8 @@ final class EntryTypesPageTest extends TestCase
 
     public function test_search_finds_an_entry_type_by_an_instance_name(): void
     {
-        $this->assertSame(['Article'], $this->names([], ['search' => 'stor']));
-        $this->assertSame(['Orphan'], $this->names([], ['search' => 'ORPH']));
+        $this->assertSame(['Article'], $this->names(['search' => 'stor']));
+        $this->assertSame(['Orphan'], $this->names(['search' => 'ORPH']));
     }
 
     public function test_sorting_by_handle_descending(): void

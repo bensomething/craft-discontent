@@ -7,6 +7,7 @@ namespace bensomething\discontent\Http\Controllers\Concerns;
 use CraftCms\Cms\Cp\Components\Icon;
 use CraftCms\Cms\Support\Html;
 use CraftCms\Cms\Ui\Controls\Choice;
+use CraftCms\Cms\Ui\Controls\Text;
 use CraftCms\Cms\Ui\Enums\FieldWidth;
 use CraftCms\Cms\Ui\Nodes\Field;
 use Illuminate\Support\Collection;
@@ -39,16 +40,84 @@ trait BuildsFilteredTables
 
         return [
             Field::make($label, Choice::make($path)->options($options)->withoutPlaceholder()->reactive())
-                ->width(FieldWidth::Half),
+                ->labelSrOnly()
+                ->width(FieldWidth::Quarter),
         ];
     }
 
-    /** @param array<string, string> $filters */
+    /**
+     * A Has / No pair of views under one heading (an optgroup), offered only where it
+     * splits the list: filtering to all of them, or none, says nothing. Whichever is
+     * selected stays offered, so a shared link keeps its own view.
+     *
+     * @param  array{0: string, 1: string}  $has  Value and label.
+     * @param  array{0: string, 1: string}  $no  Value and label.
+     * @return list<array{value: string, label: string, group: string}>
+     */
+    private function viewPair(string $group, array $has, array $no, int $count, int $total, string $selected): array
+    {
+        if (($count === 0 || $count === $total) && ! in_array($selected, [$has[0], $no[0]], true)) {
+            return [];
+        }
+
+        return [
+            ['value' => $has[0], 'label' => $has[1], 'group' => $group],
+            ['value' => $no[0], 'label' => $no[1], 'group' => $group],
+        ];
+    }
+
+    /**
+     * The search box, first in the toolbar row with the filters beside it. It stands in
+     * for the table's own search, which can't share a row with anything but Craft's
+     * status filter: as a reactive control, its value joins the filters in the table's
+     * `dataUrl` and uid.
+     *
+     * @param  int  $filterCount  How many filter dropdowns follow, to fill the row.
+     */
+    private function searchField(int $filterCount): Field
+    {
+        return Field::make(t('Search', category: 'discontent'), Text::make('search')
+            ->placeholder(t('Search', category: 'discontent'))
+            ->inputType('search')
+            ->reactive())
+            ->labelSrOnly()
+            ->width(match ($filterCount) {
+                0 => FieldWidth::Full,
+                1 => FieldWidth::ThreeQuarters,
+                default => FieldWidth::Half,
+            });
+    }
+
+    /**
+     * The table's uid: the filter values, readable, plus a hash of any search, so each
+     * combination remounts the table.
+     *
+     * @param  array<string, string>  $filters
+     */
     private function tableKey(string $page, array $filters): string
     {
+        $search = $filters['search'] ?? '';
+        unset($filters['search']);
+
         $key = implode('-', array_filter($filters)) ?: 'all';
 
+        if ($search !== '') {
+            $key .= '-q'.substr(md5($search), 0, 8);
+        }
+
         return "discontent-$page-".preg_replace('/[^a-z0-9-]+/i', '-', $key);
+    }
+
+    /**
+     * The search from a query string or a refresh: trimmed, and capped.
+     *
+     * @param  array<array-key, mixed>  $input
+     */
+    private function searchValue(array $input): string
+    {
+        $value = $input['search'] ?? null;
+
+        return is_string($value) ? mb_substr(trim($value), 0, 255) : '';
     }
 
     /**
