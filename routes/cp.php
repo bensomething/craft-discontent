@@ -5,6 +5,7 @@ declare(strict_types=1);
 use bensomething\discontent\Http\Controllers\EntryTypesController;
 use bensomething\discontent\Http\Controllers\FieldsController;
 use bensomething\discontent\Http\Controllers\PagesController;
+use bensomething\discontent\Http\Controllers\SectionsController;
 use CraftCms\Cms\Http\Middleware\RequireAdmin;
 use Illuminate\Support\Facades\Route;
 
@@ -13,7 +14,10 @@ use Illuminate\Support\Facades\Route;
 // go through Craft's own admin-changes-gated routes.
 Route::middleware(RequireAdmin::class)->group(function () {
     Route::get('discontent', [PagesController::class, 'index'])->name('discontent.index');
-    Route::get('discontent/sections', [PagesController::class, 'sections'])->name('discontent.sections');
+
+    Route::get('discontent/sections', [SectionsController::class, 'index'])->name('discontent.sections');
+    Route::post('discontent/sections/render-ui', [SectionsController::class, 'renderUi'])->name('discontent.sections.render-ui');
+    Route::post('discontent/sections/data', [SectionsController::class, 'data'])->name('discontent.sections.data');
 
     Route::get('discontent/entry-types', [EntryTypesController::class, 'index'])->name('discontent.entry-types');
     Route::post('discontent/entry-types/render-ui', [EntryTypesController::class, 'renderUi'])->name('discontent.entry-types.render-ui');
