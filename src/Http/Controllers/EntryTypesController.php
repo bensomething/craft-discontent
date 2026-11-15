@@ -31,8 +31,8 @@ use function CraftCms\Cms\t;
 
 /**
  * The Entry Types page: Craft's Settings → Entry Types list, plus a usage filter
- * (sections, Matrix, CKEditor, …), a view filter (unused, renamed somewhere, slug and
- * status shown) and Slug / Status / Post Date / Expiry Date columns: whether authors see
+ * (sections, Matrix, CKEditor, …), a view filter (unused, renamed somewhere, or showing
+ * the slug, status, post date or expiry date) and Slug / Status / Post Date / Expiry Date columns: whether authors see
  * each of those fields.
  *
  * The filters rebuild the page through {@see renderUi()} (see {@see BuildsFilteredTables}).
@@ -47,7 +47,7 @@ readonly class EntryTypesController
 
     private const string VIEW = 'view';
 
-    private const array VIEWS = ['unused', 'instances', 'slugs', 'statuses'];
+    private const array VIEWS = ['unused', 'instances', 'slugs', 'statuses', 'post-dates', 'expiry-dates'];
 
     private bool $readOnly;
 
@@ -216,6 +216,8 @@ readonly class EntryTypesController
             'instances' => $this->usages->hasInstances(),
             'slugs' => $splits($all->filter(fn (EntryType $type) => (bool) $type->showSlugField)->count()),
             'statuses' => $splits($all->filter(fn (EntryType $type) => (bool) $type->showStatusField)->count()),
+            'post-dates' => $splits($all->filter(fn (EntryType $type) => (bool) $type->showPostDateField)->count()),
+            'expiry-dates' => $splits($all->filter(fn (EntryType $type) => (bool) $type->showExpiryDateField)->count()),
         ];
 
         $labels = [
@@ -223,6 +225,8 @@ readonly class EntryTypesController
             'instances' => t('Has instances', category: 'discontent'),
             'slugs' => t('Has slugs', category: 'discontent'),
             'statuses' => t('Has statuses', category: 'discontent'),
+            'post-dates' => t('Has post dates', category: 'discontent'),
+            'expiry-dates' => t('Has expiry dates', category: 'discontent'),
         ];
 
         $options = [['value' => '', 'label' => t('Show all', category: 'discontent')]];
@@ -250,6 +254,8 @@ readonly class EntryTypesController
             'instances' => $this->usages->instances($id) !== [],
             'slugs' => (bool) $type->showSlugField,
             'statuses' => (bool) $type->showStatusField,
+            'post-dates' => (bool) $type->showPostDateField,
+            'expiry-dates' => (bool) $type->showExpiryDateField,
             default => true,
         };
     }

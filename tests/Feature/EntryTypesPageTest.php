@@ -19,8 +19,8 @@ use Override;
 
 /**
  * The Entry Types page and its rows. Fixtures: Article, used by the News section,
- * which renames it Story (an instance); Block, used by a Matrix field; and Orphan,
- * used by nothing and showing neither slug nor status.
+ * which renames it Story (an instance); Block, used by a Matrix field, hiding its
+ * expiry date; and Orphan, used by nothing and hiding its slug, status and post date.
  */
 final class EntryTypesPageTest extends TestCase
 {
@@ -30,12 +30,13 @@ final class EntryTypesPageTest extends TestCase
         parent::setUp();
 
         $article = EntryTypeFactory::new()->create(['name' => 'Article', 'handle' => 'article']);
-        $block = EntryTypeFactory::new()->create(['name' => 'Block', 'handle' => 'block']);
+        $block = EntryTypeFactory::new()->create(['name' => 'Block', 'handle' => 'block', 'showExpiryDateField' => false]);
         EntryTypeFactory::new()->create([
             'name' => 'Orphan',
             'handle' => 'orphan',
             'showSlugField' => false,
             'showStatusField' => false,
+            'showPostDateField' => false,
         ]);
 
         $section = SectionFactory::new()->create(['name' => 'News', 'handle' => 'news']);
@@ -60,7 +61,7 @@ final class EntryTypesPageTest extends TestCase
 
         $this->assertSame(['usage', 'view'], array_keys($ui['fields']));
         $this->assertSame(['', 'section', 'matrix'], $ui['fields']['usage']);
-        $this->assertSame(['', 'unused', 'instances', 'slugs', 'statuses'], $ui['fields']['view']);
+        $this->assertSame(['', 'unused', 'instances', 'slugs', 'statuses', 'post-dates', 'expiry-dates'], $ui['fields']['view']);
         $this->assertStringContainsString('/discontent/entry-types/data', (string) $ui['dataUrl']);
     }
 
@@ -88,6 +89,8 @@ final class EntryTypesPageTest extends TestCase
         $this->assertSame(['Orphan'], $this->names(['view' => 'unused']));
         $this->assertSame(['Article', 'Block'], $this->names(['view' => 'slugs']));
         $this->assertSame(['Article', 'Block'], $this->names(['view' => 'statuses']));
+        $this->assertSame(['Article', 'Block'], $this->names(['view' => 'post-dates']));
+        $this->assertSame(['Article', 'Orphan'], $this->names(['view' => 'expiry-dates']));
     }
 
     public function test_the_instances_view_nests_each_instance_under_its_entry_type(): void
