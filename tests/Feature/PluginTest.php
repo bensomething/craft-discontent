@@ -20,6 +20,16 @@ final class PluginTest extends TestCase
         $this->assertTrue(app(Plugins::class)->isPluginEnabled('discontent'));
     }
 
+    public function test_every_listed_stylesheet_exists(): void
+    {
+        $styles = (fn () => $this->styles)->call(Plugin::getInstance());
+
+        $this->assertNotEmpty($styles);
+        foreach (array_keys($styles) as $source) {
+            $this->assertFileExists($source);
+        }
+    }
+
     public function test_it_uninstalls_and_reinstalls_cleanly(): void
     {
         $plugins = app(Plugins::class);

@@ -131,7 +131,7 @@ readonly class FieldsController
         $filters = [
             // "All" plus one type filters to everything, so only offer it with two or more.
             ...(count($typeOptions) > 2 ? $this->filterField(t('Field Type', category: 'discontent'), self::TYPE, $typeOptions) : []),
-            ...$this->filterField(t('View', category: 'discontent'), self::VIEW, $this->viewOptions($values[self::VIEW])),
+            ...$this->filterField(t('Filter', category: 'discontent'), self::VIEW, $this->viewOptions($values[self::VIEW])),
         ];
         array_unshift($filters, $this->searchField(count($filters)));
 
@@ -144,6 +144,10 @@ readonly class FieldsController
                 ['key' => 'keywords', 'label' => t('Used for keywords', category: 'discontent')],
             ])
             ->dataUrl(route('discontent.fields.data', array_filter($values)))
+            // Craft's own column menu: each person shows, hides and reorders columns for
+            // themselves, remembered across filter changes (the table's storage key is
+            // its data URL's path, which filters don't change).
+            ->toggleableColumns()
             ->emptyMessage(t('No fields match these filters.', category: 'discontent'))
             ->unless($this->readOnly, fn (Table $table) => $table
                 ->createAction(t('New field', category: 'discontent'), route('craft.cp.settings.fields.create'))

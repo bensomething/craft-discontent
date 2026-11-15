@@ -144,7 +144,7 @@ readonly class EntryTypesController
 
         $filters = [
             ...(count($usageOptions) > 2 ? $this->filterField(t('Usage', category: 'discontent'), self::USAGE, $usageOptions) : []),
-            ...$this->filterField(t('View', category: 'discontent'), self::VIEW, $this->viewOptions($values[self::VIEW])),
+            ...$this->filterField(t('Filter', category: 'discontent'), self::VIEW, $this->viewOptions($values[self::VIEW])),
         ];
         array_unshift($filters, $this->searchField(count($filters)));
 
@@ -159,6 +159,10 @@ readonly class EntryTypesController
                 ['key' => 'expiryDate', 'label' => t('Expiry Date', category: 'discontent')],
             ])
             ->dataUrl(route('discontent.entry-types.data', array_filter($values)))
+            // Craft's own column menu: each person shows, hides and reorders columns for
+            // themselves, remembered across filter changes (the table's storage key is
+            // its data URL's path, which filters don't change).
+            ->toggleableColumns()
             ->emptyMessage(t('No entry types match these filters.', category: 'discontent'))
             ->unless($this->readOnly, fn (Table $table) => $table
                 ->createAction(t('New entry type', category: 'discontent'), route('craft.cp.settings.entry-types.create'))

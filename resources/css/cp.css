@@ -1,0 +1,26 @@
+/*
+ * Discontent's index pages: put the table's View (column) menu at the end of the
+ * search and filter row, rather than on a row of its own above the table.
+ *
+ * Craft's table can only share its toolbar with its own search and status filter, and
+ * Discontent builds its search and filters as separate fields above it (two filters,
+ * reactive). So the table's header is pinned to the top-right of their field group, and
+ * the last field in the row stops short of it. (Narrowing the whole group instead would
+ * trip Craft's responsive field widths and wrap the row.)
+ *
+ * Scoped by the table's uid, which always starts `discontent-`.
+ */
+craft-field-group:has(> [data-ui-node^="discontent-"]) {
+    position: relative;
+}
+
+craft-field-group > craft-field:has(+ [data-ui-node^="discontent-"]) {
+    margin-inline-end: 76px; /* the View button, plus the row's gap */
+}
+
+craft-field-group > [data-ui-node^="discontent-"] .admin-table__header {
+    position: absolute;
+    inset-block-start: 16px; /* the group's top padding, level with the fields */
+    inset-inline-end: 0;
+    margin: 0;
+}

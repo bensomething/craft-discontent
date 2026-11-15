@@ -51,6 +51,14 @@ class Plugin extends BasePlugin
     public bool $hasCpSection = true;
 
     /**
+     * Puts the index tables' column menu at the end of their search and filter row. Only
+     * touches tables whose uid starts `discontent-`.
+     */
+    protected array $styles = [
+        __DIR__.'/../resources/css/cp.css' => 'css/cp.css',
+    ];
+
+    /**
      * Bound here rather than in `boot()`: Craft loads a plugin's route files before
      * `boot()` runs, so anything they resolve has to be bound already.
      */
