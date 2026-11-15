@@ -78,8 +78,18 @@
     white-space: nowrap;
 }
 
+/* A section’s URI format: a long one is cut off with an ellipsis (the full
+   format is in its title), so it can’t stretch the table past the page. */
+.ct-uri {
+    display: block;
+    max-width: 20rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 /* Quieter than .light — for a placeholder that’s there to hold the column’s
-   shape, not to be read (the “—” in Show Slug / Show Status). */
+   shape, not to be read (the “—” in the Slug / Status columns). */
 .ct-faint {
     color: var(--fg-subtle);
     opacity: 0.4;

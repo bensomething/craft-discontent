@@ -2,6 +2,7 @@
 
 namespace bensomething\discontent\controllers;
 
+use bensomething\discontent\helpers\ViewOptions;
 use Craft;
 use craft\helpers\AdminTable;
 use craft\helpers\Cp;
@@ -78,13 +79,21 @@ class SectionsController extends Controller
         }
 
         $views = [['value' => '', 'label' => Craft::t('discontent', 'Show all')]];
-        if (($routed > 0 && $routed < $total) || in_array($initialView, ['urls', 'no-urls'], true)) {
-            $views[] = ['value' => 'urls', 'label' => Craft::t('discontent', 'Has URLs')];
-            $views[] = ['value' => 'no-urls', 'label' => Craft::t('discontent', 'No URLs')];
-        }
-        if (($versioned > 0 && $versioned < $total) || $initialView === 'versioned') {
-            $views[] = ['value' => 'versioned', 'label' => Craft::t('discontent', 'Has versioning')];
-        }
+        array_push($views, ...ViewOptions::pair(
+            Craft::t('discontent', 'URLs'),
+            ['urls', Craft::t('discontent', 'Has URLs')],
+            ['no-urls', Craft::t('discontent', 'No URLs')],
+            $routed,
+            $total,
+            $initialView,
+        ), ...ViewOptions::pair(
+            Craft::t('discontent', 'Versioning'),
+            ['versioned', Craft::t('discontent', 'Has versioning')],
+            ['unversioned', Craft::t('discontent', 'No versioning')],
+            $versioned,
+            $total,
+            $initialView,
+        ));
 
         return $this->renderTemplate('discontent/sections', [
             'sectionTypes' => count($types) > 1 ? $types : [],
@@ -126,6 +135,7 @@ class SectionsController extends Controller
         // View filter
         $sections = match ((string)$request->getParam('view', '')) {
             'versioned' => array_filter($sections, fn(Section $s) => $s->enableVersioning),
+            'unversioned' => array_filter($sections, fn(Section $s) => !$s->enableVersioning),
             'urls' => array_filter($sections, fn(Section $s) => $this->hasUrls($s)),
             'no-urls' => array_filter($sections, fn(Section $s) => !$this->hasUrls($s)),
             default => $sections,
@@ -219,7 +229,12 @@ class SectionsController extends Controller
         }
 
         $formats = array_keys($formats);
-        $html = Html::tag('code', Html::encode($formats[0]));
+        // Long formats are cut off with an ellipsis (see .ct-uri), in full on
+        // hover, so one can't stretch the table past the page.
+        $html = Html::tag('code', Html::encode($formats[0]), [
+            'class' => 'ct-uri',
+            'title' => $formats[0],
+        ]);
 
         if (count($formats) > 1) {
             $html .= Html::tag('span', Craft::t('discontent', '+ {count, number} more', [

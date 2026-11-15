@@ -2,6 +2,7 @@
 
 namespace bensomething\discontent\controllers;
 
+use bensomething\discontent\helpers\ViewOptions;
 use Craft;
 use craft\base\Chippable;
 use craft\base\Colorable;
@@ -95,9 +96,14 @@ class FieldsController extends Controller
         if ($this->layoutScan()['instances'] !== [] || $initialView === 'instances') {
             $views[] = ['value' => 'instances', 'label' => Craft::t('discontent', 'Has instances')];
         }
-        if (($searchableCount > 0 && $searchableCount < $total) || $initialView === 'keywords') {
-            $views[] = ['value' => 'keywords', 'label' => Craft::t('discontent', 'Used for keywords')];
-        }
+        array_push($views, ...ViewOptions::pair(
+            Craft::t('discontent', 'Keywords'),
+            ['keywords', Craft::t('discontent', 'Used for keywords')],
+            ['no-keywords', Craft::t('discontent', 'Not used for keywords')],
+            $searchableCount,
+            $total,
+            $initialView,
+        ));
 
         return $this->renderTemplate('discontent/fields', [
             'fieldTypes' => $types,
@@ -178,6 +184,8 @@ class FieldsController extends Controller
 
         if ($view === 'keywords') {
             $fields = array_filter($fields, fn(FieldInterface $f) => $f->searchable);
+        } elseif ($view === 'no-keywords') {
+            $fields = array_filter($fields, fn(FieldInterface $f) => !$f->searchable);
         }
 
         // Sort

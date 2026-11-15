@@ -2,6 +2,7 @@
 
 namespace bensomething\discontent\controllers;
 
+use bensomething\discontent\helpers\ViewOptions;
 use Craft;
 use craft\base\CpEditable;
 use craft\base\ElementContainerFieldInterface;
@@ -74,17 +75,26 @@ class EntryTypesController extends Controller
         if ($instances !== [] || $initialView === 'instances') {
             $views[] = ['value' => 'instances', 'label' => Craft::t('discontent', 'Has instances')];
         }
-        if (($withSlug > 0 && $withSlug < $total) || $initialView === 'slugs') {
-            $views[] = ['value' => 'slugs', 'label' => Craft::t('discontent', 'Has slugs')];
-        }
-        if (($withStatus > 0 && $withStatus < $total) || $initialView === 'statuses') {
-            $views[] = ['value' => 'statuses', 'label' => Craft::t('discontent', 'Has statuses')];
-        }
+        array_push($views, ...ViewOptions::pair(
+            Craft::t('discontent', 'Slug'),
+            ['slugs', Craft::t('discontent', 'Has slug')],
+            ['no-slugs', Craft::t('discontent', 'No slug')],
+            $withSlug,
+            $total,
+            $initialView,
+        ), ...ViewOptions::pair(
+            Craft::t('discontent', 'Status'),
+            ['statuses', Craft::t('discontent', 'Has status')],
+            ['no-statuses', Craft::t('discontent', 'No status')],
+            $withStatus,
+            $total,
+            $initialView,
+        ));
 
         return $this->renderTemplate('discontent/entry-types', [
             // Nothing to choose between if "Show all" is the only view.
             'views' => count($views) > 1 ? $views : [],
-            // Rendered once for the Show Slug / Show Status columns rather than
+            // Rendered once for the Slug / Status columns rather than
             // per row (there’s no iconSvg() in Twig).
             'checkIcon' => Cp::iconSvg('check'),
             'initialSearch' => (string)$request->getParam('search', ''),
@@ -130,12 +140,15 @@ class EntryTypesController extends Controller
             $entryTypes = array_filter($entryTypes, fn(EntryType $et) => isset($instances[$et->id]));
         }
 
-        // The slug / status views: the ones that show that field to authors.
-        if ($view === 'slugs') {
-            $entryTypes = array_filter($entryTypes, fn(EntryType $et) => $et->showSlugField);
-        } elseif ($view === 'statuses') {
-            $entryTypes = array_filter($entryTypes, fn(EntryType $et) => $et->showStatusField);
-        }
+        // The slug / status views: the ones that show that field to authors,
+        // or hide it.
+        $entryTypes = match ($view) {
+            'slugs' => array_filter($entryTypes, fn(EntryType $et) => $et->showSlugField),
+            'no-slugs' => array_filter($entryTypes, fn(EntryType $et) => !$et->showSlugField),
+            'statuses' => array_filter($entryTypes, fn(EntryType $et) => $et->showStatusField),
+            'no-statuses' => array_filter($entryTypes, fn(EntryType $et) => !$et->showStatusField),
+            default => $entryTypes,
+        };
 
         // Search — label + handle, plus any instance’s label or handle, so an
         // entry type can be found by the name it goes by somewhere else.

@@ -61,8 +61,8 @@
                 title: Craft.t('app', 'Used by'),
                 callback: (value) => value || `<i class="light">${Craft.t('app', 'No usages')}</i>`,
             },
-            { name: 'slug', title: Craft.t('discontent', 'Show Slug'), callback: flag },
-            { name: 'status', title: Craft.t('discontent', 'Show Status'), callback: flag },
+            { name: 'slug', title: Craft.t('discontent', 'Slug'), callback: flag },
+            { name: 'status', title: Craft.t('discontent', 'Status'), callback: flag },
         ];
 
         new Craft.Discontent.FilterTable({
