@@ -12,9 +12,11 @@ A Craft CMS plugin that supercharges the admin-facing **Sections**, **Entry Type
 Install Discontent from the **Plugin Store** in the control panel, or with Composer:
 
 ```bash
-composer require bensomething/craft-discontent
+composer require bensomething/craft-discontent:^1.0.0-beta
 php craft plugin/install discontent
 ```
+
+If Composer refuses, your project's `minimum-stability` is `stable`. Set it to `beta` with `"prefer-stable": true`, or pin the exact version.
 
 ## What it does
 
