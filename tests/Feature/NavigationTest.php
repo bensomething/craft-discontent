@@ -44,6 +44,12 @@ final class NavigationTest extends TestCase
             array_map(fn ($child) => $child->icon, (array) $item->subnav),
         );
         $this->assertStringEndsWith('/settings/plugins/discontent', (string) end($item->subnav)->href);
+        // Its own ids: Settings' URL would otherwise give it Craft's Settings → Plugins →
+        // Discontent id, and CP Navigation customizations of that item.
+        $this->assertSame(
+            ['nav-discontent-sections', 'nav-discontent-entry-types', 'nav-discontent-fields', 'nav-discontent-settings'],
+            array_map(fn ($child) => $child->id, (array) $item->subnav),
+        );
     }
 
     public function test_the_landing_url_opens_the_default_view(): void

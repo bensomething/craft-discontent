@@ -97,11 +97,14 @@ class Plugin extends BasePlugin
             ->href(cp_url('discontent'))
             ->icon('hammer')
             // The same icons as Craft's own Settings subnav, which these pages stand in for.
+            // Explicit ids: Craft otherwise derives them from the URL, and Settings' URL
+            // gives the same id as Craft's own Settings → Plugins → Discontent item, which
+            // then lends this one its label (CP Navigation keys items by id).
             ->subnav([
-                new NavItem()->label(t('Sections', category: 'discontent'))->href(cp_url('discontent/sections'))->icon('newspaper'),
-                new NavItem()->label(t('Entry Types', category: 'discontent'))->href(cp_url('discontent/entry-types'))->icon('files'),
-                new NavItem()->label(t('Fields', category: 'discontent'))->href(cp_url('discontent/fields'))->icon('pen-to-square'),
-                new NavItem()->label(t('Settings', category: 'discontent'))->href(cp_url('settings/plugins/discontent'))->icon('gear'),
+                new NavItem()->id('nav-discontent-sections')->label(t('Sections', category: 'discontent'))->href(cp_url('discontent/sections'))->icon('newspaper'),
+                new NavItem()->id('nav-discontent-entry-types')->label(t('Entry Types', category: 'discontent'))->href(cp_url('discontent/entry-types'))->icon('files'),
+                new NavItem()->id('nav-discontent-fields')->label(t('Fields', category: 'discontent'))->href(cp_url('discontent/fields'))->icon('pen-to-square'),
+                new NavItem()->id('nav-discontent-settings')->label(t('Settings', category: 'discontent'))->href(cp_url('settings/plugins/discontent'))->icon('gear'),
             ]);
     }
 
