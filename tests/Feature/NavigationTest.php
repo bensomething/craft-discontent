@@ -31,6 +31,10 @@ final class NavigationTest extends TestCase
             ['Sections', 'Entry Types', 'Fields', 'Settings'],
             array_map(fn ($child) => $child->label, (array) $item->subnav),
         );
+        $this->assertSame(
+            ['newspaper', 'files', 'pen-to-square', 'gear'],
+            array_map(fn ($child) => $child->icon, (array) $item->subnav),
+        );
         $this->assertStringEndsWith('/settings/plugins/discontent', (string) end($item->subnav)->href);
     }
 

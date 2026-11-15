@@ -90,11 +90,12 @@ class Plugin extends BasePlugin
             ->label((string) $this->name)
             ->href(cp_url('discontent'))
             ->icon('hammer')
+            // The same icons as Craft's own Settings subnav, which these pages stand in for.
             ->subnav([
-                new NavItem()->label(t('Sections', category: 'discontent'))->href(cp_url('discontent/sections')),
-                new NavItem()->label(t('Entry Types', category: 'discontent'))->href(cp_url('discontent/entry-types')),
-                new NavItem()->label(t('Fields', category: 'discontent'))->href(cp_url('discontent/fields')),
-                new NavItem()->label(t('Settings', category: 'discontent'))->href(cp_url('settings/plugins/discontent')),
+                new NavItem()->label(t('Sections', category: 'discontent'))->href(cp_url('discontent/sections'))->icon('newspaper'),
+                new NavItem()->label(t('Entry Types', category: 'discontent'))->href(cp_url('discontent/entry-types'))->icon('files'),
+                new NavItem()->label(t('Fields', category: 'discontent'))->href(cp_url('discontent/fields'))->icon('pen-to-square'),
+                new NavItem()->label(t('Settings', category: 'discontent'))->href(cp_url('settings/plugins/discontent'))->icon('gear'),
             ]);
     }
 
