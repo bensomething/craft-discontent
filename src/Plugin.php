@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace bensomething\discontent;
 
 use bensomething\discontent\Http\Middleware\RedirectNativePages;
+use bensomething\discontent\Support\EntryTypeUsages;
 use CraftCms\Cms\Cp\Data\NavItem;
 use CraftCms\Cms\Plugin\Plugin as BasePlugin;
 use CraftCms\Cms\Plugin\PluginSettings;
@@ -58,6 +59,9 @@ class Plugin extends BasePlugin
         parent::register();
 
         $this->app->singleton(Settings::class, fn () => $this->getSettings());
+
+        // Built once per request: the Entry Types page reads it for every row.
+        $this->app->scoped(EntryTypeUsages::class);
     }
 
     public function boot(Router $router): void

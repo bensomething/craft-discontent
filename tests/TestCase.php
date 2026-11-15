@@ -6,6 +6,7 @@ namespace bensomething\discontent\tests;
 
 use CraftCms\Cms\Plugin\Testing\PluginTestCase;
 use CraftCms\Cms\User\Models\User as UserModel;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Override;
 
 /**
@@ -22,6 +23,12 @@ abstract class TestCase extends PluginTestCase
         $config = $app->make('config');
         $config->set('database.default', 'sqlite');
         $config->set('database.connections.sqlite.database', ':memory:');
+
+        // Craft's model factories, mapped in composer.json's autoload-dev, are named
+        // for their models but not under Laravel's default `Database\Factories`.
+        Factory::guessFactoryNamesUsing(
+            fn (string $model) => 'CraftCms\\Cms\\Database\\Factories\\'.class_basename($model).'Factory',
+        );
     }
 
     /** Signs in as the admin Craft's install created. */

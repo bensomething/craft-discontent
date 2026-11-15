@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use bensomething\discontent\Http\Controllers\EntryTypesController;
 use bensomething\discontent\Http\Controllers\PagesController;
 use CraftCms\Cms\Http\Middleware\RequireAdmin;
 use Illuminate\Support\Facades\Route;
@@ -12,6 +13,9 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(RequireAdmin::class)->group(function () {
     Route::get('discontent', [PagesController::class, 'index'])->name('discontent.index');
     Route::get('discontent/sections', [PagesController::class, 'sections'])->name('discontent.sections');
-    Route::get('discontent/entry-types', [PagesController::class, 'entryTypes'])->name('discontent.entry-types');
     Route::get('discontent/fields', [PagesController::class, 'fields'])->name('discontent.fields');
+
+    Route::get('discontent/entry-types', [EntryTypesController::class, 'index'])->name('discontent.entry-types');
+    Route::post('discontent/entry-types/render-ui', [EntryTypesController::class, 'renderUi'])->name('discontent.entry-types.render-ui');
+    Route::post('discontent/entry-types/data', [EntryTypesController::class, 'data'])->name('discontent.entry-types.data');
 });

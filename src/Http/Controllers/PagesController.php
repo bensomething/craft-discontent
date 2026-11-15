@@ -15,7 +15,7 @@ use function CraftCms\Cms\cp_url;
 use function CraftCms\Cms\t;
 
 /**
- * The landing redirect, and placeholders for the three pages until steps 3 to 5 give
+ * The landing redirect, and placeholders for the Sections and Fields pages until steps 4 and 5 give
  * each its own controller (see PLAN.md).
  */
 readonly class PagesController
@@ -35,11 +35,6 @@ readonly class PagesController
     public function sections(): CpScreenResponse
     {
         return $this->placeholder(t('Sections', category: 'discontent'));
-    }
-
-    public function entryTypes(): CpScreenResponse
-    {
-        return $this->placeholder(t('Entry Types', category: 'discontent'));
     }
 
     public function fields(): CpScreenResponse
