@@ -17,8 +17,8 @@
         "source": "https://github.com/bensomething/craft-discontent"
     },
     "require": {
-        "php": "^8.2",
-        "craftcms/cms": "^5.10"
+        "php": "^8.5",
+        "craftcms/cms": "^6.0.0-beta.1"
     },
     "require-dev": {
         "craftcms/ecs": "dev-main",
