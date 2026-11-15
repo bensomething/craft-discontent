@@ -12,7 +12,6 @@ use CraftCms\Cms\Plugin\Plugin as BasePlugin;
 use CraftCms\Cms\Plugin\PluginSettings;
 use CraftCms\Cms\Ui\Controls\Choice;
 use CraftCms\Cms\Ui\Controls\Lightswitch;
-use CraftCms\Cms\Ui\Controls\Text;
 use CraftCms\Cms\Ui\Enums\ControlMode;
 use CraftCms\Cms\Ui\Nodes\Field;
 use CraftCms\Cms\Ui\Ui;
@@ -22,6 +21,7 @@ use Illuminate\Support\Facades\Config;
 use Override;
 
 use function CraftCms\Cms\cp_url;
+use function CraftCms\Cms\currentUser;
 use function CraftCms\Cms\t;
 
 /**
@@ -45,8 +45,8 @@ class Plugin extends BasePlugin
     public bool $hasReadOnlyCpSettings = true;
 
     /**
-     * Craft lists a plugin's nav item only when this is on *and* `getCpNavItem()`
-     * returns one, so the item follows the Show in Main Navigation setting.
+     * Discontent always offers a nav item. Craft's own CP Navigation settings rename it,
+     * move it or hide it, per user group if need be.
      */
     public bool $hasCpSection = true;
 
@@ -68,10 +68,6 @@ class Plugin extends BasePlugin
 
     public function boot(Router $router): void
     {
-        // The admin-chosen name, for the nav item, page titles and the plugin's card in
-        // Settings → Plugins.
-        $this->name = $this->getSettings()->getName();
-
         $router->pushMiddlewareToGroup('craft.cp', RedirectNativePages::class);
     }
 
@@ -82,7 +78,9 @@ class Plugin extends BasePlugin
     #[Override]
     public function getCpNavItem(): ?NavItem
     {
-        if (! $this->getSettings()->showInMainNav) {
+        // Admins only, like the pages: anyone else given Access Discontent would find
+        // a nav item that leads to a 403.
+        if (! currentUser()?->isAdmin()) {
             return null;
         }
 
@@ -128,31 +126,18 @@ class Plugin extends BasePlugin
             return $field;
         };
 
-        // Default View only matters with a nav item to open, so it follows the switch,
-        // as the form is edited and not just as saved.
-        $showInMainNav = (bool) ($context->values['settings']['showInMainNav'] ?? $this->getSettings()->showInMainNav);
-
         return Ui::make([
-            $overridable('pluginName', Field::make(t('Plugin Name', category: 'discontent'), Text::make('pluginName')
-                ->placeholder(Settings::DEFAULT_NAME))
-                ->instructions(t('The public-facing name of the plugin.', category: 'discontent'))),
-
             $overridable('overrideNativePages', Field::make(t('Replace Native Pages', category: 'discontent'), Lightswitch::make('overrideNativePages'))
                 ->instructions(t('When on, Settings → Sections, Entry Types and Fields use Discontent’s filtering pages. Turn off to use Craft’s own.', category: 'discontent'))),
 
-            $overridable('showInMainNav', Field::make(t('Show in Main Navigation', category: 'discontent'), Lightswitch::make('showInMainNav')->reactive())
-                ->instructions(t('Adds a nav item linking to the Sections, Entry Types and Fields pages.', category: 'discontent'))),
-
-            ...($showInMainNav ? [
-                $overridable('defaultView', Field::make(t('Default View', category: 'discontent'), Choice::make('defaultView')
-                    ->options([
-                        ['value' => 'sections', 'label' => t('Sections', category: 'discontent')],
-                        ['value' => 'entry-types', 'label' => t('Entry Types', category: 'discontent')],
-                        ['value' => 'fields', 'label' => t('Fields', category: 'discontent')],
-                    ])
-                    ->withoutPlaceholder())
-                    ->instructions(t('Which page the nav item opens.', category: 'discontent'))),
-            ] : []),
+            $overridable('defaultView', Field::make(t('Default View', category: 'discontent'), Choice::make('defaultView')
+                ->options([
+                    ['value' => 'sections', 'label' => t('Sections', category: 'discontent')],
+                    ['value' => 'entry-types', 'label' => t('Entry Types', category: 'discontent')],
+                    ['value' => 'fields', 'label' => t('Fields', category: 'discontent')],
+                ])
+                ->withoutPlaceholder())
+                ->instructions(t('Which page the nav item opens.', category: 'discontent'))),
         ]);
     }
 }

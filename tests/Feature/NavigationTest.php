@@ -13,20 +13,28 @@ use CraftCms\Cms\Edition;
 /** The nav item, the pages' routes and who can reach them, and Replace Native Pages. */
 final class NavigationTest extends TestCase
 {
-    public function test_there_is_no_nav_item_while_the_setting_is_off(): void
+    public function test_there_is_no_nav_item_for_a_guest(): void
     {
+        $this->assertNull(Plugin::getInstance()->getCpNavItem());
+    }
+
+    public function test_there_is_no_nav_item_for_a_non_admin(): void
+    {
+        Edition::set(Edition::Pro);
+        $this->actingAs(UserFactory::new()->withPermissions(['accessCp', 'accessPlugin-discontent'])->create(), 'craft');
+
         $this->assertNull(Plugin::getInstance()->getCpNavItem());
     }
 
     public function test_the_nav_item_lists_the_pages_and_the_settings_screen(): void
     {
-        $this->setSettings(['showInMainNav' => true, 'pluginName' => 'Schema']);
-        Plugin::getInstance()->boot(app('router'));
+        $this->signIn();
 
         $item = Plugin::getInstance()->getCpNavItem();
 
         $this->assertNotNull($item);
-        $this->assertSame('Schema', $item->label);
+        // Craft's own CP Navigation settings rename it; the plugin uses its own name.
+        $this->assertSame('Discontent', $item->label);
         $this->assertSame(
             ['Sections', 'Entry Types', 'Fields', 'Settings'],
             array_map(fn ($child) => $child->label, (array) $item->subnav),

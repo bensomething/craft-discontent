@@ -15,21 +15,11 @@ final class SettingsScreenTest extends TestCase
 {
     private const string URL = '/admin/settings/plugins/discontent';
 
-    public function test_it_opens_with_default_view_hidden_while_the_nav_item_is_off(): void
+    public function test_it_opens(): void
     {
         $this->signIn();
 
-        $fields = $this->fields();
-
-        $this->assertSame(['pluginName', 'overrideNativePages', 'showInMainNav'], array_keys($fields));
-    }
-
-    public function test_default_view_shows_once_the_nav_item_is_on(): void
-    {
-        $this->signIn();
-        $this->setSettings(['showInMainNav' => true]);
-
-        $this->assertArrayHasKey('defaultView', $this->fields());
+        $this->assertSame(['overrideNativePages', 'defaultView'], array_keys($this->fields()));
     }
 
     public function test_it_saves(): void
@@ -37,29 +27,15 @@ final class SettingsScreenTest extends TestCase
         $this->signIn();
 
         $this->postJson(self::URL, ['settings' => [
-            'pluginName' => 'Schema',
             'overrideNativePages' => '',
-            'showInMainNav' => '1',
             'defaultView' => 'sections',
         ]])->assertOk();
 
         $settings = Plugin::getInstance()->getSettings();
 
-        $this->assertSame('Schema', $settings->pluginName);
         $this->assertFalse($settings->overrideNativePages);
-        $this->assertTrue($settings->showInMainNav);
         $this->assertSame('sections', $settings->defaultView);
         $this->assertSame('sections', app(ProjectConfig::class)->get('plugins.discontent.settings.defaultView'));
-    }
-
-    public function test_an_emptied_name_saves_as_blank(): void
-    {
-        $this->signIn();
-        $this->setSettings(['pluginName' => 'Schema']);
-
-        $this->postJson(self::URL, ['settings' => ['pluginName' => '']])->assertOk();
-
-        $this->assertSame('Discontent', Plugin::getInstance()->getSettings()->getName());
     }
 
     public function test_bad_values_are_refused_and_not_saved(): void
@@ -82,7 +58,7 @@ final class SettingsScreenTest extends TestCase
             $this->assertSame('readOnly', $field['mode'], $setting);
         }
 
-        $this->postJson(self::URL, ['settings' => ['showInMainNav' => '1']])->assertForbidden();
+        $this->postJson(self::URL, ['settings' => ['defaultView' => 'sections']])->assertForbidden();
     }
 
     public function test_settings_from_the_config_file_are_read_only_and_say_why(): void
@@ -95,8 +71,8 @@ final class SettingsScreenTest extends TestCase
         $this->assertSame('readOnly', $fields['overrideNativePages']['mode']);
         $this->assertStringContainsString('config/craft/discontent.php', (string) $fields['overrideNativePages']['warning']);
 
-        $this->assertNotSame('readOnly', $fields['pluginName']['mode']);
-        $this->assertNull($fields['pluginName']['warning']);
+        $this->assertNotSame('readOnly', $fields['defaultView']['mode']);
+        $this->assertNull($fields['defaultView']['warning']);
     }
 
     public function test_the_config_sample_is_where_craft_publishes_from(): void
@@ -105,14 +81,6 @@ final class SettingsScreenTest extends TestCase
 
         $this->assertFileExists($sample);
         $this->assertIsArray(require $sample);
-    }
-
-    public function test_the_chosen_name_names_the_plugin(): void
-    {
-        $this->setSettings(['pluginName' => 'Schema']);
-        Plugin::getInstance()->boot(app('router'));
-
-        $this->assertSame('Schema', Plugin::getInstance()->name);
     }
 
     /** @param array<string, mixed> $values */

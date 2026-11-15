@@ -14,14 +14,8 @@
  */
 
 return [
-    // The public-facing name: the nav item and page titles. Blank means "Discontent".
-    // 'pluginName' => 'Discontent',
-
     // Send Settings → Sections, Entry Types and Fields to Discontent's pages.
     // 'overrideNativePages' => true,
-
-    // Give Discontent its own main-nav item.
-    // 'showInMainNav' => false,
 
     // The page the nav item opens: 'sections', 'entry-types' or 'fields'.
     // 'defaultView' => 'fields',
