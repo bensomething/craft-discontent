@@ -1,21 +1,38 @@
 /*
- * Discontent's index pages: put the table's View (column) menu at the end of the
- * search and filter row, rather than on a row of its own above the table.
+ * Discontent's index pages: one toolbar row of search (filling the space), the filter
+ * dropdowns (as narrow as their options allow) and the table's View (column) menu,
+ * rather than Craft's fixed-fraction grid with the View menu on a row of its own.
  *
  * Craft's table can only share its toolbar with its own search and status filter, and
  * Discontent builds its search and filters as separate fields above it (two filters,
- * reactive). So the table's header is pinned to the top-right of their field group, and
- * the last field in the row stops short of it. (Narrowing the whole group instead would
- * trip Craft's responsive field widths and wrap the row.)
+ * reactive). So their field group becomes a wrapping flex row, the table takes a row of
+ * its own beneath, and the table's header is pinned to the top-right of the group, with
+ * the last field stopping short of it.
  *
  * Scoped by the table's uid, which always starts `discontent-`.
  */
 craft-field-group:has(> [data-ui-node^="discontent-"]) {
     position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+craft-field-group:has(> [data-ui-node^="discontent-"]) > craft-field {
+    flex: 0 0 auto;
+    width: auto;
+}
+
+craft-field-group:has(> [data-ui-node^="discontent-"]) > craft-field#ui-search {
+    flex: 1 1 12rem;
 }
 
 craft-field-group > craft-field:has(+ [data-ui-node^="discontent-"]) {
     margin-inline-end: 76px; /* the View button, plus the row's gap */
+}
+
+craft-field-group > [data-ui-node^="discontent-"] {
+    flex: 0 0 100%;
 }
 
 craft-field-group > [data-ui-node^="discontent-"] .admin-table__header {
