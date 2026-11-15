@@ -6,6 +6,7 @@ namespace bensomething\discontent;
 
 use bensomething\discontent\Http\Middleware\RedirectNativePages;
 use bensomething\discontent\Support\EntryTypeUsages;
+use bensomething\discontent\Support\FieldLayoutScan;
 use CraftCms\Cms\Cp\Data\NavItem;
 use CraftCms\Cms\Plugin\Plugin as BasePlugin;
 use CraftCms\Cms\Plugin\PluginSettings;
@@ -60,8 +61,9 @@ class Plugin extends BasePlugin
 
         $this->app->singleton(Settings::class, fn () => $this->getSettings());
 
-        // Built once per request: the Entry Types page reads it for every row.
+        // Built once per request: the Entry Types and Fields pages read them for every row.
         $this->app->scoped(EntryTypeUsages::class);
+        $this->app->scoped(FieldLayoutScan::class);
     }
 
     public function boot(Router $router): void

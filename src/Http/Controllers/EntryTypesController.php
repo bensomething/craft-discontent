@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace bensomething\discontent\Http\Controllers;
 
+use bensomething\discontent\Http\Controllers\Concerns\BuildsFilteredTables;
 use bensomething\discontent\Plugin;
 use bensomething\discontent\Support\EntryTypeUsages;
 use CraftCms\Cms\Config\GeneralConfig;
 use CraftCms\Cms\Cp\Components\CopyAttribute;
-use CraftCms\Cms\Cp\Components\Icon;
 use CraftCms\Cms\Cp\Html\ElementHtml;
 use CraftCms\Cms\Cp\Html\PreviewHtml;
 use CraftCms\Cms\Entry\Data\EntryType;
@@ -19,9 +19,6 @@ use CraftCms\Cms\Section\Data\Section;
 use CraftCms\Cms\Support\Facades\EntryTypes;
 use CraftCms\Cms\Support\Facades\Markdown;
 use CraftCms\Cms\Support\Html;
-use CraftCms\Cms\Ui\Controls\Choice;
-use CraftCms\Cms\Ui\Enums\FieldWidth;
-use CraftCms\Cms\Ui\Nodes\Field;
 use CraftCms\Cms\Ui\Nodes\Table;
 use CraftCms\Cms\Ui\Ui;
 use CraftCms\Cms\Ui\UiContext;
@@ -37,14 +34,14 @@ use function CraftCms\Cms\t;
  * (sections, Matrix, CKEditor, …), a view filter (unused, renamed somewhere, slug and
  * status shown) and Show Slug / Show Status columns.
  *
- * The filters are reactive `Ui` controls: changing one rebuilds the page through
- * {@see renderUi()}, whose table carries the filters in its `dataUrl` *and* its uid. The
- * uid is what makes the table remount and fetch from the new URL; a table that keeps its
- * uid keeps its rows. Rows come from {@see data()}, which filters, searches, sorts and
- * pages on the server, so instance rows stay nested under their entry type.
+ * The filters rebuild the page through {@see renderUi()} (see {@see BuildsFilteredTables}).
+ * Rows come from {@see data()}, which filters, searches, sorts and pages on the server,
+ * so instance rows stay nested under their entry type.
  */
 readonly class EntryTypesController
 {
+    use BuildsFilteredTables;
+
     private const string USAGE = 'usage';
 
     private const string VIEW = 'view';
@@ -103,10 +100,7 @@ readonly class EntryTypesController
             $entryTypes = $entryTypes->reverse()->values();
         }
 
-        $total = $entryTypes->count();
-        $perPage = $request->limit();
-        $page = min($request->page(), max(1, (int) ceil($total / $perPage)));
-        $paged = $entryTypes->slice(($page - 1) * $perPage, $perPage);
+        [$paged, $pagination] = $this->paginate($entryTypes, $request->page(), $request->limit());
 
         $rows = [];
 
@@ -124,36 +118,23 @@ readonly class EntryTypesController
 
         return new JsonResponse([
             'data' => Table::prepareRows($rows),
-            'pagination' => $this->pagination($total, $page, $perPage),
+            'pagination' => $pagination,
         ]);
     }
 
     /** @param array<string, string> $values */
     private function ui(array $values): Ui
     {
-        $filters = [];
-
+        // Usage is only worth offering when entry types are used by more than one kind
+        // of thing: "All" plus a single kind filters to everything that's used.
         $usageOptions = $this->usageOptions($values[self::USAGE]);
-        if (count($usageOptions) > 2) {
-            $filters[] = Field::make(t('Usage', category: 'discontent'), Choice::make(self::USAGE)
-                ->options($usageOptions)
-                ->withoutPlaceholder()
-                ->reactive())
-                ->width(FieldWidth::Half);
-        }
 
-        $viewOptions = $this->viewOptions($values[self::VIEW]);
-        if (count($viewOptions) > 1) {
-            $filters[] = Field::make(t('View', category: 'discontent'), Choice::make(self::VIEW)
-                ->options($viewOptions)
-                ->withoutPlaceholder()
-                ->reactive())
-                ->width(FieldWidth::Half);
-        }
+        $filters = [
+            ...(count($usageOptions) > 2 ? $this->filterField(t('Usage', category: 'discontent'), self::USAGE, $usageOptions) : []),
+            ...$this->filterField(t('View', category: 'discontent'), self::VIEW, $this->viewOptions($values[self::VIEW])),
+        ];
 
-        $key = implode('-', array_filter([$values[self::USAGE], $values[self::VIEW]])) ?: 'all';
-
-        $table = Table::make("discontent-entry-types-$key")
+        $table = Table::make($this->tableKey('entry-types', $values))
             ->columns([
                 ['key' => 'name', 'label' => t('Entry Type', category: 'discontent'), 'sortable' => true],
                 ['key' => 'handle', 'label' => t('Handle', category: 'discontent'), 'sortable' => true],
@@ -180,14 +161,11 @@ readonly class EntryTypesController
      */
     private function filterValues(array $input): array
     {
-        $usage = is_string($input[self::USAGE] ?? null) ? $input[self::USAGE] : '';
-        $view = is_string($input[self::VIEW] ?? null) ? $input[self::VIEW] : '';
-
         $kinds = [EntryTypeUsages::KIND_SECTION, EntryTypeUsages::KIND_MATRIX, EntryTypeUsages::KIND_CKEDITOR, EntryTypeUsages::KIND_FIELD];
 
         return [
-            self::USAGE => in_array($usage, $kinds, true) ? $usage : '',
-            self::VIEW => in_array($view, self::VIEWS, true) ? $view : '',
+            self::USAGE => $this->allowedValue($input, self::USAGE, $kinds),
+            self::VIEW => $this->allowedValue($input, self::VIEW, self::VIEWS),
         ];
     }
 
@@ -295,15 +273,12 @@ readonly class EntryTypesController
     /** @return array<string, mixed> */
     private function row(EntryType $type): array
     {
-        $label = Html::encode($type->getUiLabel());
         $url = (string) $type->getCpEditUrl();
         $instanceCount = count($this->usages->instances((int) $type->id));
 
-        // `data-cp-url` + `data-editable` are what Craft's table looks for to open a
-        // slideout when the row is double-clicked; a click on the link still navigates.
         $name = Html::beginTag('div', ['class' => 'flex gap-1 items-center row-wrap']).
             app(ElementHtml::class)->chipHtml($type, [
-                'labelHtml' => Html::a($label, $url, ['data-cp-url' => $url, 'data-editable' => true]),
+                'labelHtml' => $this->slideoutLink($type->getUiLabel(), $url),
             ]);
 
         if ($type->description) {
@@ -313,11 +288,7 @@ readonly class EntryTypesController
         }
 
         // Worth flagging in every view, not just the instances one.
-        if ($instanceCount > 0) {
-            $name .= Html::tag('span', Html::encode(t('+ {count, number} {count, plural, =1{instance} other{instances}}', [
-                'count' => $instanceCount,
-            ], 'discontent')), ['class' => 'light']);
-        }
+        $name .= $this->instanceNote($instanceCount);
 
         $name .= Html::endTag('div');
 
@@ -356,11 +327,7 @@ readonly class EntryTypesController
             ? route('craft.cp.settings.sections.edit', ['section' => $owner->id])
             : route('craft.cp.settings.fields.edit', ['fieldId' => $owner->id]);
 
-        $name = Html::tag('div',
-            Icon::make()->name('arrow-turn-down-right')->toHtml().
-            Html::a(Html::encode($instance['label']), $ownerUrl, ['data-cp-url' => $ownerUrl, 'data-editable' => true]),
-            ['class' => 'flex gap-2 items-center', 'style' => 'padding-inline-start: 0.75rem'],
-        );
+        $name = $this->instanceName($this->slideoutLink($instance['label'], $ownerUrl));
 
         return [
             'id' => "$type->id-instance-$i",
@@ -371,29 +338,6 @@ readonly class EntryTypesController
             'slug' => $this->flag((bool) $type->showSlugField),
             'status' => $this->flag((bool) $type->showStatusField),
             '_deletable' => false,
-        ];
-    }
-
-    /** @return array{icon: string, label: string}|string */
-    private function flag(bool $on): array|string
-    {
-        return $on ? ['icon' => 'check', 'label' => t('Yes', category: 'discontent')] : '—';
-    }
-
-    /** @return array<string, int|string|null> */
-    private function pagination(int $total, int $page, int $perPage): array
-    {
-        $lastPage = max(1, (int) ceil($total / $perPage));
-
-        return [
-            'total' => $total,
-            'per_page' => $perPage,
-            'current_page' => $page,
-            'last_page' => $lastPage,
-            'next_page_url' => null,
-            'prev_page_url' => null,
-            'from' => $total === 0 ? null : ($page - 1) * $perPage + 1,
-            'to' => $total === 0 ? null : min($total, $page * $perPage),
         ];
     }
 }
