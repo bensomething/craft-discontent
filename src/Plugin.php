@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace bensomething\discontent;
 
+use bensomething\discontent\Http\Middleware\RedirectNativePages;
+use CraftCms\Cms\Cp\Data\NavItem;
 use CraftCms\Cms\Plugin\Plugin as BasePlugin;
 use CraftCms\Cms\Plugin\PluginSettings;
 use CraftCms\Cms\Ui\Controls\Choice;
@@ -13,9 +15,11 @@ use CraftCms\Cms\Ui\Enums\ControlMode;
 use CraftCms\Cms\Ui\Nodes\Field;
 use CraftCms\Cms\Ui\Ui;
 use CraftCms\Cms\Ui\UiContext;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Config;
 use Override;
 
+use function CraftCms\Cms\cp_url;
 use function CraftCms\Cms\t;
 
 /**
@@ -39,6 +43,12 @@ class Plugin extends BasePlugin
     public bool $hasReadOnlyCpSettings = true;
 
     /**
+     * Craft lists a plugin's nav item only when this is on *and* `getCpNavItem()`
+     * returns one, so the item follows the Show in Main Navigation setting.
+     */
+    public bool $hasCpSection = true;
+
+    /**
      * Bound here rather than in `boot()`: Craft loads a plugin's route files before
      * `boot()` runs, so anything they resolve has to be bound already.
      */
@@ -50,11 +60,36 @@ class Plugin extends BasePlugin
         $this->app->singleton(Settings::class, fn () => $this->getSettings());
     }
 
-    public function boot(): void
+    public function boot(Router $router): void
     {
-        // The admin-chosen name, for the nav item and page titles. Craft's plugin list
-        // keeps the package's own name from composer.json.
+        // The admin-chosen name, for the nav item, page titles and the plugin's card in
+        // Settings → Plugins.
         $this->name = $this->getSettings()->getName();
+
+        $router->pushMiddlewareToGroup('craft.cp', RedirectNativePages::class);
+    }
+
+    /**
+     * The nav item, with a subnav of the pages. Craft highlights whichever item's URL
+     * best matches the current one, so nothing here marks a selection.
+     */
+    #[Override]
+    public function getCpNavItem(): ?NavItem
+    {
+        if (! $this->getSettings()->showInMainNav) {
+            return null;
+        }
+
+        return new NavItem()
+            ->label((string) $this->name)
+            ->href(cp_url('discontent'))
+            ->icon('hammer')
+            ->subnav([
+                new NavItem()->label(t('Sections', category: 'discontent'))->href(cp_url('discontent/sections')),
+                new NavItem()->label(t('Entry Types', category: 'discontent'))->href(cp_url('discontent/entry-types')),
+                new NavItem()->label(t('Fields', category: 'discontent'))->href(cp_url('discontent/fields')),
+                new NavItem()->label(t('Settings', category: 'discontent'))->href(cp_url('settings/plugins/discontent')),
+            ]);
     }
 
     #[Override]

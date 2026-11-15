@@ -110,7 +110,7 @@ final class SettingsScreenTest extends TestCase
     public function test_the_chosen_name_names_the_plugin(): void
     {
         $this->setSettings(['pluginName' => 'Schema']);
-        Plugin::getInstance()->boot();
+        Plugin::getInstance()->boot(app('router'));
 
         $this->assertSame('Schema', Plugin::getInstance()->name);
     }
