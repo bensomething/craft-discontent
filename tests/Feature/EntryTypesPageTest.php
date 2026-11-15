@@ -137,6 +137,19 @@ final class EntryTypesPageTest extends TestCase
         $this->assertStringContainsString('/settings/entry-types/', $row['_deleteUrl']);
     }
 
+    public function test_the_shown_field_columns(): void
+    {
+        $rows = $this->rows();
+
+        $this->assertSame(['slug', 'status', 'postDate', 'expiryDate'], array_values(array_intersect(
+            array_keys($rows[0]),
+            ['slug', 'status', 'postDate', 'expiryDate'],
+        )));
+        $this->assertSame('check', $rows[0]['slug']['icon']);
+        $this->assertSame('—', $rows[2]['slug'], 'Orphan hides its slug');
+        $this->assertSame('—', $rows[2]['status'], 'Orphan hides its status');
+    }
+
     public function test_unknown_filters_are_ignored(): void
     {
         $this->assertSame(['Article', 'Block', 'Orphan'], $this->names(['usage' => 'nope', 'view' => 'nope']));

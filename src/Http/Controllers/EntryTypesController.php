@@ -32,7 +32,8 @@ use function CraftCms\Cms\t;
 /**
  * The Entry Types page: Craft's Settings → Entry Types list, plus a usage filter
  * (sections, Matrix, CKEditor, …), a view filter (unused, renamed somewhere, slug and
- * status shown) and Show Slug / Show Status columns.
+ * status shown) and Slug / Status / Post Date / Expiry Date columns: whether authors see
+ * each of those fields.
  *
  * The filters rebuild the page through {@see renderUi()} (see {@see BuildsFilteredTables}).
  * Rows come from {@see data()}, which filters, searches, sorts and pages on the server,
@@ -139,8 +140,10 @@ readonly class EntryTypesController
                 ['key' => 'name', 'label' => t('Entry Type', category: 'discontent'), 'sortable' => true],
                 ['key' => 'handle', 'label' => t('Handle', category: 'discontent'), 'sortable' => true],
                 ['key' => 'usages', 'label' => t('Used by', category: 'discontent')],
-                ['key' => 'slug', 'label' => t('Show Slug', category: 'discontent')],
-                ['key' => 'status', 'label' => t('Show Status', category: 'discontent')],
+                ['key' => 'slug', 'label' => t('Slug', category: 'discontent')],
+                ['key' => 'status', 'label' => t('Status', category: 'discontent')],
+                ['key' => 'postDate', 'label' => t('Post Date', category: 'discontent')],
+                ['key' => 'expiryDate', 'label' => t('Expiry Date', category: 'discontent')],
             ])
             ->dataUrl(route('discontent.entry-types.data', array_filter($values)))
             ->searchable()
@@ -270,6 +273,22 @@ readonly class EntryTypesController
         return false;
     }
 
+    /**
+     * Whether authors see the Slug, Status, Post Date and Expiry Date fields. An
+     * instance shows what it inherits: renaming doesn't touch these.
+     *
+     * @return array<string, array{icon: string, label: string}|string>
+     */
+    private function shownFields(EntryType $type): array
+    {
+        return [
+            'slug' => $this->flag((bool) $type->showSlugField),
+            'status' => $this->flag((bool) $type->showStatusField),
+            'postDate' => $this->flag((bool) $type->showPostDateField),
+            'expiryDate' => $this->flag((bool) $type->showExpiryDateField),
+        ];
+    }
+
     /** @return array<string, mixed> */
     private function row(EntryType $type): array
     {
@@ -301,8 +320,7 @@ readonly class EntryTypesController
             'usages' => $usedBy === []
                 ? t('No usages', category: 'discontent')
                 : ['html' => app(PreviewHtml::class)->componentPreviewHtml($usedBy, ['hyperlink' => true])],
-            'slug' => $this->flag((bool) $type->showSlugField),
-            'status' => $this->flag((bool) $type->showStatusField),
+            ...$this->shownFields($type),
             ...($this->readOnly ? [] : [
                 '_deleteUrl' => route('craft.cp.settings.entry-types.destroy', ['entryType' => $type->id]),
                 '_deleteConfirmMessage' => t('Are you sure you want to delete “{name}” and all entries of that type?', [
@@ -334,9 +352,7 @@ readonly class EntryTypesController
             'name' => ['html' => $name],
             'handle' => ['html' => CopyAttribute::make()->value($instance['handle'])->toHtml()],
             'usages' => ['html' => app(PreviewHtml::class)->componentPreviewHtml([$owner], ['hyperlink' => true])],
-            // Renaming doesn't touch these, so an instance shows what it inherits.
-            'slug' => $this->flag((bool) $type->showSlugField),
-            'status' => $this->flag((bool) $type->showStatusField),
+            ...$this->shownFields($type),
             '_deletable' => false,
         ];
     }
