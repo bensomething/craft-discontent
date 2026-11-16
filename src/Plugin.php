@@ -8,6 +8,7 @@ use bensomething\discontent\Http\Middleware\RedirectNativePages;
 use bensomething\discontent\Support\EntryTypeUsages;
 use bensomething\discontent\Support\FieldLayoutScan;
 use CraftCms\Cms\Cp\Data\NavItem;
+use CraftCms\Cms\Cp\Events\CpNavItemsResolving;
 use CraftCms\Cms\Plugin\Plugin as BasePlugin;
 use CraftCms\Cms\Plugin\PluginSettings;
 use CraftCms\Cms\Ui\Controls\Choice;
@@ -18,6 +19,7 @@ use CraftCms\Cms\Ui\Ui;
 use CraftCms\Cms\Ui\UiContext;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Event;
 use Override;
 
 use function CraftCms\Cms\cp_url;
@@ -45,10 +47,12 @@ class Plugin extends BasePlugin
     public bool $hasReadOnlyCpSettings = true;
 
     /**
-     * Discontent always offers a nav item. Craft's own CP Navigation settings rename it,
+     * Off, though Discontent always offers a nav item: a CP section would also register
+     * an Access Discontent permission, which grants nothing when every page is admin-only.
+     * {@see boot()} adds the item instead. Craft's own CP Navigation settings rename it,
      * move it or hide it, per user group if need be.
      */
-    public bool $hasCpSection = true;
+    public bool $hasCpSection = false;
 
     /**
      * Puts the index tables' column menu at the end of their search and filter row. Only
@@ -77,6 +81,28 @@ class Plugin extends BasePlugin
     public function boot(Router $router): void
     {
         $router->pushMiddlewareToGroup('craft.cp', RedirectNativePages::class);
+
+        // Where Craft puts a CP section's item: at the end of the Content group, which
+        // Craft leaves out when it would be empty, ahead of Administration.
+        Event::listen(function (CpNavItemsResolving $event): void {
+            $item = $this->getCpNavItem();
+
+            if ($item === null) {
+                return;
+            }
+
+            foreach ($event->navItems as $navItem) {
+                if ($navItem->id === 'nav-group-content') {
+                    $navItem->subnav([...($navItem->subnav ?: []), $item]);
+
+                    return;
+                }
+            }
+
+            $content = new NavItem()->id('nav-group-content')->label(t('Content'))->group(true)->subnav([$item]);
+            $index = array_search('nav-group-administration', array_map(fn (NavItem $navItem) => $navItem->id, $event->navItems), true);
+            array_splice($event->navItems, is_int($index) ? $index : count($event->navItems), 0, [$content]);
+        });
     }
 
     /**
@@ -93,6 +119,9 @@ class Plugin extends BasePlugin
         }
 
         return new NavItem()
+            // The id a CP section's item gets from its URL, which CP Navigation
+            // customizations of it are saved under.
+            ->id('nav-discontent')
             ->label((string) $this->name)
             ->href(cp_url('discontent'))
             ->icon('hammer')

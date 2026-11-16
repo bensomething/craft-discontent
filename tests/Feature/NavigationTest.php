@@ -7,8 +7,10 @@ namespace bensomething\discontent\tests\Feature;
 use bensomething\discontent\Http\Middleware\RedirectNativePages;
 use bensomething\discontent\Plugin;
 use bensomething\discontent\tests\TestCase;
+use CraftCms\Cms\Cp\Navigation;
 use CraftCms\Cms\Database\Factories\UserFactory;
 use CraftCms\Cms\Edition;
+use CraftCms\Cms\User\UserPermissions;
 
 /** The nav item, the pages' routes and who can reach them, and Replace Native Pages. */
 final class NavigationTest extends TestCase
@@ -49,6 +51,25 @@ final class NavigationTest extends TestCase
         $this->assertSame(
             ['nav-discontent-sections', 'nav-discontent-entry-types', 'nav-discontent-fields', 'nav-discontent-settings'],
             array_map(fn ($child) => $child->id, (array) $item->subnav),
+        );
+    }
+
+    public function test_admins_get_the_nav_item_at_the_end_of_the_content_group(): void
+    {
+        $this->signIn();
+
+        $content = collect(app(Navigation::class)->getItems())->firstWhere('id', 'nav-group-content');
+
+        $this->assertNotNull($content);
+        $this->assertSame('nav-discontent', end($content->subnav)->id);
+    }
+
+    public function test_there_is_no_access_discontent_permission(): void
+    {
+        // It would grant nothing: every page is admin-only.
+        $this->assertStringNotContainsString(
+            'accessPlugin-discontent',
+            (string) json_encode(app(UserPermissions::class)->getAllPermissions()),
         );
     }
 

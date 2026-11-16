@@ -19,4 +19,5 @@
 
 ### Changed
 - Toolbar toggles can be flipped by clicking their label (**Unused**, **Instances**), not just the switch.
+- The nav item, for admins only, sits at the end of Craft’s Content group, and there’s no longer an **Access Discontent** permission: it granted nothing, since every page is admin-only. Craft’s CP Navigation settings still rename, move or hide the item.
 - Read-only environments (`allowAdminChanges` off): the Fields/Entry Types edit slideouts hide their Save button and relabel Cancel as **Close**, keeping the native read-only notice. Esc or a shade click also dismiss the slideout.
