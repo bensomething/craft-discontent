@@ -87,7 +87,7 @@ final class FieldsPageTest extends TestCase
 
         $this->assertCount(2, $rows);
         $this->assertStringContainsString('Intro', $rows[1]['name']['html']);
-        $this->assertStringContainsString('/settings/entry-types/', $rows[1]['name']['html']);
+        $this->assertStringContainsString('#ui-tab-content-tab', $rows[1]['name']['html']);
         $this->assertSame('Instance', $rows[1]['type']);
         $this->assertFalse($rows[1]['_deletable']);
     }
@@ -95,6 +95,14 @@ final class FieldsPageTest extends TestCase
     public function test_a_field_with_instances_says_so_in_every_view(): void
     {
         $this->assertStringContainsString('+ 1 instance', $this->rows()[0]['name']['html']);
+    }
+
+    public function test_the_instance_note_links_to_the_field_in_the_instances_view(): void
+    {
+        $html = html_entity_decode($this->rows()[0]['name']['html']);
+
+        $this->assertStringContainsString('discontent/fields?search=body&view=instances', $html);
+        $this->assertSame(['Body', 'Intro'], $this->names(['view' => 'instances', 'search' => 'body']));
     }
 
     public function test_a_field_in_one_layout_names_it_and_an_unused_one_says_so(): void

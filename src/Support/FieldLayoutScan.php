@@ -159,10 +159,18 @@ class FieldLayoutScan
             default => null,
         };
 
+        $url = $provider instanceof CpEditable ? $provider->getCpEditUrl() : null;
+
+        // Those screens keep the layout designer on a Content tab, which Craft's tabs
+        // open from the URL hash.
+        if ($url !== null && $slideoutUrl !== null) {
+            $url .= '#ui-tab-content-tab';
+        }
+
         return new LayoutOwner(
             label: $provider->getUiLabel(),
             provider: $provider,
-            url: $provider instanceof CpEditable ? $provider->getCpEditUrl() : null,
+            url: $url,
             slideoutUrl: $slideoutUrl,
         );
     }

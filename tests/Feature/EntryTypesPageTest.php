@@ -116,6 +116,13 @@ final class EntryTypesPageTest extends TestCase
         $this->assertStringContainsString('+ 1 instance', $this->rows()[0]['name']['html']);
     }
 
+    public function test_the_instance_note_links_to_the_entry_type_in_the_instances_view(): void
+    {
+        $html = html_entity_decode($this->rows()[0]['name']['html']);
+
+        $this->assertStringContainsString('discontent/entry-types?search=article&view=instances', $html);
+    }
+
     public function test_search_finds_an_entry_type_by_an_instance_name(): void
     {
         $this->assertSame(['Article'], $this->names(['search' => 'stor']));

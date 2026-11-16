@@ -277,7 +277,10 @@ readonly class FieldsController
 
         $nameHtml = Html::tag('div',
             $this->slideoutLink($name, $url, options: ['class' => 'font-bold']).
-            $this->instanceNote(count($this->scan->instances((string) $field->uid))),
+            $this->instanceNote(
+                count($this->scan->instances((string) $field->uid)),
+                route('discontent.fields', ['search' => (string) $field->handle, self::VIEW => 'instances']),
+            ),
             ['class' => 'flex gap-2 items-center row-wrap'],
         );
 

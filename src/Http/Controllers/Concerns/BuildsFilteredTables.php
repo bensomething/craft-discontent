@@ -190,16 +190,19 @@ trait BuildsFilteredTables
         ]);
     }
 
-    /** "+ 2 instances", beside a name. */
-    private function instanceNote(int $count): string
+    /**
+     * "+ 2 instances", beside a name, linking to `$url`: the page filtered to Has
+     * instances and searched for the handle, so the instances are listed under it.
+     */
+    private function instanceNote(int $count, string $url): string
     {
         if ($count === 0) {
             return '';
         }
 
-        return Html::tag('span', Html::encode(t('+ {count, number} {count, plural, =1{instance} other{instances}}', [
+        return Html::a(Html::encode(t('+ {count, number} {count, plural, =1{instance} other{instances}}', [
             'count' => $count,
-        ], 'discontent')), ['class' => 'light']);
+        ], 'discontent')), $url, ['class' => 'light']);
     }
 
     /** The first cell of an instance row: the ↳ arrow, then the instance's link. */

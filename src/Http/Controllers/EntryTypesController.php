@@ -330,7 +330,10 @@ readonly class EntryTypesController
         }
 
         // Worth flagging in every view, not just the instances one.
-        $name .= $this->instanceNote($instanceCount);
+        $name .= $this->instanceNote(
+            $instanceCount,
+            route('discontent.entry-types', ['search' => (string) $type->handle, self::VIEW => 'instances']),
+        );
 
         $name .= Html::endTag('div');
 
