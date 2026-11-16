@@ -15,7 +15,7 @@
 - **Entry Types**: **Show Slug** and **Show Status** columns (a tick when authors see the field, a faint dash when they don’t), plus **Has slugs** and **Has statuses** views.
 - **Fields**: a **Used for keywords** column and a matching **Used for keywords** view, for the fields whose values feed element search.
 - Double-clicking an instance opens the entry type or volume it belongs to in a slideout, where its field layout designer edits the instance’s own settings (label, handle, instructions, conditions).
-- **Used by** names the layout, with its icon, for fields used in only one — “2 layouts” and up are still counted, as in Craft.
+- **Used by** shows the layouts a field is in as chips: the first, plus a “+N” that expands to the rest. It falls back to Craft’s count when not every layout can be named.
 
 ### Changed
 - Toolbar toggles can be flipped by clicking their label (**Unused**, **Instances**), not just the switch.

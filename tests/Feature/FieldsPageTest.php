@@ -107,6 +107,22 @@ final class FieldsPageTest extends TestCase
         $this->assertStringContainsString('Article', $body['usages']['html']);
     }
 
+    public function test_a_field_in_several_layouts_chips_the_first_and_counts_the_rest(): void
+    {
+        $colour = app(Fields::class)->getFieldByHandle('colour');
+        EntryTypeFactory::new()
+            ->withFieldLayout(FieldLayoutFactory::new()->withContentTab([new CustomField(config: ['fieldUid' => $colour->uid])]))
+            ->create(['name' => 'Note', 'handle' => 'note']);
+        app(EntryTypes::class)->refreshEntryTypes();
+
+        $html = $this->rows()[1]['usages']['html'];
+
+        // Article's chip first, Note behind the "+1".
+        $this->assertStringContainsString('data-label="Article"', $html);
+        $this->assertStringContainsString('>+1</craft-button>', $html);
+        $this->assertStringContainsString('Note', $html);
+    }
+
     public function test_search_finds_a_field_by_an_instance_handle_or_its_type(): void
     {
         $this->assertSame(['Body'], $this->names(['search' => 'INTRO']));

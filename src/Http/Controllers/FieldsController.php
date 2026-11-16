@@ -8,6 +8,7 @@ use bensomething\discontent\Http\Controllers\Concerns\BuildsFilteredTables;
 use bensomething\discontent\Plugin;
 use bensomething\discontent\Support\FieldLayoutScan;
 use bensomething\discontent\Support\LayoutOwner;
+use CraftCms\Cms\Component\Contracts\Chippable;
 use CraftCms\Cms\Component\Contracts\Iconic;
 use CraftCms\Cms\Config\GeneralConfig;
 use CraftCms\Cms\Cp\Components\CopyAttribute;
@@ -335,9 +336,11 @@ readonly class FieldsController
     }
 
     /**
-     * The layout itself when there's only one (named, not counted), otherwise Craft's
-     * count. One owner is only shown when the count agrees: if the scan didn't see that
-     * layout, the count is all that can honestly be said.
+     * The field's layouts as chips: the first, then a "+N" that expands to the rest, like
+     * the other chip columns. Chips are only shown when they tell the whole story: the
+     * scan has to have seen every layout Craft counts, and each needs an owner to chip.
+     * Otherwise a list would quietly understate where the field is used, so it falls
+     * back to Craft's count, except for a lone provider-less layout, which is named.
      *
      * @param  list<LayoutOwner>  $owners
      * @return array{html: string}|string
@@ -348,8 +351,18 @@ readonly class FieldsController
             return t('No usages', category: 'discontent');
         }
 
-        if ($count === 1 && count($owners) === 1) {
-            return $this->ownerCell($owners[0]);
+        if ($count === count($owners)) {
+            $providers = array_values(array_filter(array_map(fn (LayoutOwner $owner) => $owner->provider, $owners)));
+
+            if (count($providers) === $count) {
+                usort($providers, fn (Chippable $a, Chippable $b) => strcasecmp($a->getUiLabel(), $b->getUiLabel()));
+
+                return ['html' => app(PreviewHtml::class)->componentPreviewHtml($providers, ['hyperlink' => true])];
+            }
+
+            if ($count === 1) {
+                return $owners[0]->label;
+            }
         }
 
         return t('{count, number} {count, plural, =1{layout} other{layouts}}', ['count' => $count], 'discontent');
