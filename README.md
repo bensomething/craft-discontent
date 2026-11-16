@@ -23,6 +23,7 @@ If Composer refuses, your project's `minimum-stability` is `stable`. Set it to `
 By default Discontent **replaces** Craft’s native Settings → Sections, Entry Types and Fields index pages with enhanced versions (the New/Edit screens stay native). Everything is admin-only and read-through — it reuses Craft’s own edit, save, and delete actions.
 
 **Sections**
+- **Entry Types** column — the entry types each section uses, as it names them
 - **URLs** and **Versioning** columns — the entry URI format entries get (or “No URLs”), and whether they’re versioned
 - Filter by section type: **Singles**, **Channels**, or **Structures**
 - View: **Show all**, **Has URLs** / **No URLs** (a section counts as routed if it has URLs in at least one site), or **Has versioning** / **No versioning**

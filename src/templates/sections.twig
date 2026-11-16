@@ -9,7 +9,7 @@
 ] %}
 
 {% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') %}
-{% do view.registerTranslations('app', ['Handle', 'Name', 'Type', 'No results.', 'Search']) %}
+{% do view.registerTranslations('app', ['Handle', 'Name', 'Type', 'Entry Types', 'No results.', 'Search']) %}
 
 {% block actionButton %}
     {% if craft.app.config.general.allowAdminChanges %}
@@ -53,6 +53,7 @@
             { name: '__slot:title', title: Craft.t('app', 'Name'), sortField: true },
             { name: '__slot:handle', title: Craft.t('app', 'Handle'), sortField: true },
             { name: 'type', title: Craft.t('app', 'Type'), sortField: true },
+            { name: 'entryTypes', title: Craft.t('app', 'Entry Types') },
             {
                 name: 'urls',
                 title: Craft.t('discontent', 'URLs'),

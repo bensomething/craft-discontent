@@ -145,6 +145,14 @@ class SectionsController extends Controller
         if ($search !== '') {
             $term = mb_strtolower($search);
             $sections = array_filter($sections, function(Section $s) use ($term) {
+                // Entry types by the name they go by here, so a search finds
+                // the sections using one.
+                foreach ($s->getEntryTypes() as $entryType) {
+                    if (str_contains(mb_strtolower($entryType->getUiLabel()), $term)) {
+                        return true;
+                    }
+                }
+
                 return str_contains(mb_strtolower($s->getUiLabel()), $term)
                     || str_contains(mb_strtolower((string)$s->handle), $term)
                     || str_contains(mb_strtolower($this->typeLabel($s->type)), $term);
@@ -178,6 +186,9 @@ class SectionsController extends Controller
                 'url' => $section->getCpEditUrl(),
                 'handle' => $section->handle,
                 'type' => $this->typeLabel($section->type),
+                // As the section names them: an entry type renamed here shows
+                // that name.
+                'entryTypes' => Cp::componentPreviewHtml($section->getEntryTypes(), ['hyperlink' => true]),
                 'versioning' => $section->enableVersioning,
                 'urls' => $this->urlsHtml($section),
             ];
