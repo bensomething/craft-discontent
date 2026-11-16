@@ -369,7 +369,7 @@ class FieldsController extends Controller
      * The thing a field layout belongs to, as label / link / icon.
      *
      * @param class-string<ElementInterface> $elementType
-     * @return array{label: string, url: string|null, icon: string|null, color: string|null}
+     * @return array{label: string, url: string|null, icon: string|null, color: string|null, slideout: array|null, provider: Chippable|null}
      */
     private function layoutOwner(FieldLayout $layout, string $elementType): array
     {
@@ -392,6 +392,7 @@ class FieldsController extends Controller
                 'icon' => $icon !== null ? Cp::iconSvg($icon) : null,
                 'color' => $provider instanceof Colorable ? $provider->getColor()?->value : null,
                 'slideout' => $this->ownerSlideout($provider),
+                'provider' => $provider,
             ];
         }
 
@@ -403,6 +404,7 @@ class FieldsController extends Controller
             'icon' => null,
             'color' => null,
             'slideout' => null,
+            'provider' => null,
         ];
     }
 
@@ -475,13 +477,15 @@ class FieldsController extends Controller
     }
 
     /**
-     * The “Used by” cell for a field: the layout itself when there’s only one
-     * (named, not counted), otherwise Craft’s count. Null when unused — the
-     * table renders its own “No usages”.
+     * The “Used by” cell for a field: its layouts as chips — the first, then a
+     * “+N” that expands to the rest, like the other chip columns. Null when
+     * unused — the table renders its own “No usages”.
      *
-     * A single owner is only shown when the count agrees with it; if the scan
-     * didn’t see that layout (see {@see layoutScan()}), the count is all we can
-     * honestly say.
+     * Chips are only shown when they tell the whole story: the scan has to
+     * have seen every layout Craft counts (see {@see layoutScan()}), and each
+     * has to have an owner to chip. Otherwise a list would quietly understate
+     * where the field is used, so it falls back to Craft’s count — except a
+     * lone provider-less layout (the users layout, say), which is named.
      *
      * @param array<string, array> $owners
      */
@@ -491,8 +495,18 @@ class FieldsController extends Controller
             return null;
         }
 
-        if ($count === 1 && count($owners) === 1) {
-            return $this->ownerHtml(reset($owners));
+        if ($count === count($owners)) {
+            $providers = array_filter(array_column($owners, 'provider'));
+
+            if (count($providers) === $count) {
+                usort($providers, fn(Chippable $a, Chippable $b) => strcasecmp($a->getUiLabel(), $b->getUiLabel()));
+
+                return Cp::componentPreviewHtml($providers, ['hyperlink' => true]);
+            }
+
+            if ($count === 1) {
+                return $this->ownerHtml(reset($owners));
+            }
         }
 
         return Craft::t('app', '{count, number} {count, plural, =1{layout} other{layouts}}', ['count' => $count]);

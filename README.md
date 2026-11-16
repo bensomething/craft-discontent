@@ -38,7 +38,7 @@ By default Discontent **replaces** Craft’s native Settings → Sections, Entry
 **Fields**
 - Filter by field type (only types actually in use are listed)
 - View: **Show all**, **Unused** (not in any field layout), **Has instances** — fields used under a different label or handle, each instance nested under its field — or **Used for keywords** / **Not used for keywords**
-- **Used by** names the layout for fields used in only one, and counts the rest
+- **Used by** shows the layouts a field is in as chips, the first plus a “+N” for the rest, falling back to Craft’s count when not every layout can be named
 - **Used for keywords** column — whether the field’s values feed element search
 - Search, sort, double-click a row to edit in a slideout, delete, and “New field”
 
