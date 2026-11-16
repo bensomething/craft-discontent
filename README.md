@@ -1,3 +1,5 @@
+<img src="src/icon.svg" width="96" alt="Discontent">
+
 # Discontent
 
 A Craft CMS plugin that supercharges the admin-facing **Sections**, **Entry Types** and **Fields** screens with filtering — by type/usage, by whether they’re actually used, and by where they’re used under another name — so you can find and clean up fast.
