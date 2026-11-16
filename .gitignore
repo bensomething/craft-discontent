@@ -2,5 +2,6 @@
 /vendor
 /node_modules
 composer.lock
+/PLAN.md
 /.phpunit.cache
 /.claude/settings.local.json
