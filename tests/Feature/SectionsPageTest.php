@@ -6,10 +6,13 @@ namespace bensomething\discontent\tests\Feature;
 
 use bensomething\discontent\tests\TestCase;
 use CraftCms\Cms\Cms;
+use CraftCms\Cms\Database\Factories\EntryTypeFactory;
 use CraftCms\Cms\Database\Factories\SectionFactory;
 use CraftCms\Cms\Database\Factories\UserFactory;
 use CraftCms\Cms\Edition;
+use CraftCms\Cms\Entry\EntryTypes;
 use CraftCms\Cms\Section\Enums\SectionType;
+use CraftCms\Cms\Section\Models\Section;
 use CraftCms\Cms\Section\Models\SectionSiteSettings;
 use CraftCms\Cms\Section\Sections;
 use Illuminate\Testing\TestResponse;
@@ -17,8 +20,9 @@ use Override;
 
 /**
  * The Sections page and its rows. Fixtures: News, a versioned channel routed to
- * `news/{slug}`; About, an unversioned single with no URLs; and Docs, a versioned
- * structure routed to `docs/{slug}`.
+ * `news/{slug}`, using the Article entry type renamed to Story; About, an unversioned
+ * single with no URLs; and Docs, a versioned structure routed to `docs/{slug}`, using
+ * Page.
  */
 final class SectionsPageTest extends TestCase
 {
@@ -27,10 +31,16 @@ final class SectionsPageTest extends TestCase
     {
         parent::setUp();
 
-        $this->section('News', SectionType::Channel, versioned: true, uriFormat: 'news/{slug}');
-        $this->section('About', SectionType::Single, versioned: false, uriFormat: null);
-        $this->section('Docs', SectionType::Structure, versioned: true, uriFormat: 'docs/{slug}');
+        $article = EntryTypeFactory::new()->create(['name' => 'Article', 'handle' => 'article']);
+        $page = EntryTypeFactory::new()->create(['name' => 'Page', 'handle' => 'page']);
 
+        $this->section('News', SectionType::Channel, versioned: true, uriFormat: 'news/{slug}')
+            ->entryTypes()->attach($article, ['sortOrder' => 1, 'name' => 'Story', 'handle' => 'story']);
+        $this->section('About', SectionType::Single, versioned: false, uriFormat: null);
+        $this->section('Docs', SectionType::Structure, versioned: true, uriFormat: 'docs/{slug}')
+            ->entryTypes()->attach($page, ['sortOrder' => 1]);
+
+        app(EntryTypes::class)->refreshEntryTypes();
         app(Sections::class)->refreshSections();
 
         $this->signIn();
@@ -75,6 +85,22 @@ final class SectionsPageTest extends TestCase
         $this->assertSame('check', $docs['versioning']['icon']);
     }
 
+    public function test_the_entry_types_column_names_them_as_the_section_does(): void
+    {
+        [$about, $docs, $news] = $this->rows();
+
+        $this->assertSame('', $about['entryTypes']['html']);
+        $this->assertStringContainsString('Page', $docs['entryTypes']['html']);
+        $this->assertStringContainsString('Story', $news['entryTypes']['html']);
+        $this->assertStringNotContainsString('Article', $news['entryTypes']['html']);
+    }
+
+    public function test_search_matches_entry_types_by_the_name_they_go_by(): void
+    {
+        $this->assertSame(['News'], $this->names(['search' => 'story']));
+        $this->assertSame(['Docs'], $this->names(['search' => 'PAGE']));
+    }
+
     public function test_search_matches_the_type_too(): void
     {
         $this->assertSame(['Docs'], $this->names(['search' => 'STRUCT']));
@@ -117,7 +143,7 @@ final class SectionsPageTest extends TestCase
         $this->data()->assertForbidden();
     }
 
-    private function section(string $name, SectionType $type, bool $versioned, ?string $uriFormat): void
+    private function section(string $name, SectionType $type, bool $versioned, ?string $uriFormat): Section
     {
         $section = SectionFactory::new()->create([
             'name' => $name,
@@ -130,6 +156,8 @@ final class SectionsPageTest extends TestCase
             'hasUrls' => $uriFormat !== null,
             'uriFormat' => $uriFormat,
         ]);
+
+        return $section;
     }
 
     /**

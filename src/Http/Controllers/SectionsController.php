@@ -8,6 +8,8 @@ use bensomething\discontent\Http\Controllers\Concerns\BuildsFilteredTables;
 use bensomething\discontent\Plugin;
 use CraftCms\Cms\Config\GeneralConfig;
 use CraftCms\Cms\Cp\Components\CopyAttribute;
+use CraftCms\Cms\Cp\Html\PreviewHtml;
+use CraftCms\Cms\Entry\Data\EntryType;
 use CraftCms\Cms\Http\Requests\TableRequest;
 use CraftCms\Cms\Http\Responses\CpScreenResponse;
 use CraftCms\Cms\Section\Data\Section;
@@ -25,8 +27,9 @@ use Illuminate\Support\Collection;
 use function CraftCms\Cms\t;
 
 /**
- * The Sections page: Craft's Settings → Sections list, plus the URI format its entries
- * get, a section-type filter, a URLs / versioning view filter, and search.
+ * The Sections page: Craft's Settings → Sections list, plus the entry types each section
+ * uses, the URI format its entries get, a section-type filter, a URLs / versioning view
+ * filter, and search.
  *
  * There's no unused or instances view, as there is for fields and entry types: a
  * section is a top-level thing that nothing uses or renames.
@@ -118,6 +121,7 @@ readonly class SectionsController
                 ['key' => 'name', 'label' => t('Name', category: 'discontent'), 'sortable' => true],
                 ['key' => 'handle', 'label' => t('Handle', category: 'discontent'), 'sortable' => true],
                 ['key' => 'type', 'label' => t('Type', category: 'discontent'), 'sortable' => true],
+                ['key' => 'entryTypes', 'label' => t('Entry Types', category: 'discontent')],
                 ['key' => 'urls', 'label' => t('URLs', category: 'discontent')],
                 ['key' => 'versioning', 'label' => t('Versioning', category: 'discontent')],
             ])
@@ -231,7 +235,10 @@ readonly class SectionsController
 
     private function matchesSearch(Section $section, string $search): bool
     {
-        foreach ([$section->getUiLabel(), (string) $section->handle, $this->typeLabel($section)] as $haystack) {
+        // Entry types by the name they go by here, so a search finds the sections using one.
+        $entryTypes = array_map(fn (EntryType $type) => $type->getUiLabel(), $section->getEntryTypes());
+
+        foreach ([$section->getUiLabel(), (string) $section->handle, $this->typeLabel($section), ...$entryTypes] as $haystack) {
             if (str_contains(mb_strtolower($haystack), $search)) {
                 return true;
             }
@@ -271,6 +278,8 @@ readonly class SectionsController
             'name' => ['html' => $this->slideoutLink($label, $url, options: ['class' => 'font-bold'])],
             'handle' => ['html' => CopyAttribute::make()->value((string) $section->handle)->toHtml()],
             'type' => $this->typeLabel($section),
+            // As the section names them: an entry type renamed here shows that name.
+            'entryTypes' => ['html' => app(PreviewHtml::class)->componentPreviewHtml($section->getEntryTypes(), ['hyperlink' => true])],
             'urls' => $this->urlsCell($section),
             'versioning' => $this->flag($section->enableVersioning),
             ...($this->readOnly ? [] : [
