@@ -99,10 +99,3 @@ craft-field-group > [data-ui-node^="discontent-"] .admin-table.admin-table--flus
     flex: none;
     white-space: nowrap;
 }
-
-/* Craft caps settings pages at 960px, which these tables' columns outgrow. A wider
-   cap (Craft's own variable for it) rather than none, so they don't sprawl across a
-   large screen. */
-.cp-content-view--constrained:has([data-ui-node^="discontent-"]) {
-    --cp-content-max-width: 75rem;
-}

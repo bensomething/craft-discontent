@@ -81,6 +81,9 @@ readonly class EntryTypesController
             ->addCrumb((string) Plugin::getInstance()->name, 'discontent')
             ->ui($this->ui($values), new UiContext(values: $values, refreshable: true), [
                 'refreshUrl' => route('discontent.entry-types.render-ui'),
+                // Full width, like an element index: these tables have more columns than
+                // Craft's settings width fits.
+                'contentMaxWidth' => false,
             ]);
     }
 
