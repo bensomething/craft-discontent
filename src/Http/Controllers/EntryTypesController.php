@@ -300,7 +300,7 @@ readonly class EntryTypesController
      * Whether authors see the Slug, Status, Post Date and Expiry Date fields. An
      * instance shows what it inherits: renaming doesn't touch these.
      *
-     * @return array<string, array{icon: string, label: string}|string>
+     * @return array<string, array{icon: string, label: string}|array{html: string}>
      */
     private function shownFields(EntryType $type): array
     {

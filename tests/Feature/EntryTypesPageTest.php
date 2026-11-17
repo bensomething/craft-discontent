@@ -163,8 +163,8 @@ final class EntryTypesPageTest extends TestCase
             ['slug', 'status', 'postDate', 'expiryDate'],
         )));
         $this->assertSame('check', $rows[0]['slug']['icon']);
-        $this->assertSame('—', $rows[2]['slug'], 'Orphan hides its slug');
-        $this->assertSame('—', $rows[2]['status'], 'Orphan hides its status');
+        $this->assertStringContainsString('discontent-faint', $rows[2]['slug']['html'], 'Orphan hides its slug');
+        $this->assertStringContainsString('discontent-faint', $rows[2]['status']['html'], 'Orphan hides its status');
     }
 
     public function test_unknown_filters_are_ignored(): void

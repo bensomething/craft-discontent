@@ -162,10 +162,20 @@ trait BuildsFilteredTables
         ];
     }
 
-    /** @return array{icon: string, label: string}|string */
-    private function flag(bool $on): array|string
+    /**
+     * A tick, or a faint dash that's there to hold the column's shape rather than to be
+     * read. Screen readers get "No" in its place.
+     *
+     * @return array{icon: string, label: string}|array{html: string}
+     */
+    private function flag(bool $on): array
     {
-        return $on ? ['icon' => 'check', 'label' => t('Yes', category: 'discontent')] : '—';
+        if ($on) {
+            return ['icon' => 'check', 'label' => t('Yes', category: 'discontent')];
+        }
+
+        return ['html' => Html::tag('span', '—', ['class' => 'discontent-faint', 'aria-hidden' => 'true'])
+            .Html::tag('span', t('No', category: 'discontent'), ['class' => 'sr-only'])];
     }
 
     /**

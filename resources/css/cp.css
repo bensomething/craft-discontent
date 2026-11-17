@@ -41,3 +41,10 @@ craft-field-group > [data-ui-node^="discontent-"] .admin-table__header {
     inset-inline-end: 0;
     margin: 0;
 }
+
+/* The dash in a tick column (Versioning, Slug, Status): it holds the column's shape, so
+   it stays well back from the ticks. */
+.discontent-faint {
+    color: var(--c-text-quiet);
+    opacity: 0.5;
+}

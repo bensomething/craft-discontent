@@ -80,7 +80,7 @@ final class SectionsPageTest extends TestCase
 
         $this->assertSame('Single', $about['type']);
         $this->assertSame('No URLs', $about['urls']);
-        $this->assertSame('—', $about['versioning']);
+        $this->assertStringContainsString('discontent-faint', $about['versioning']['html']);
         $this->assertMatchesRegularExpression('#<code [^>]*title="docs/\{slug\}"[^>]*>docs/\{slug\}</code>#', $docs['urls']['html']);
         $this->assertSame('check', $docs['versioning']['icon']);
     }
