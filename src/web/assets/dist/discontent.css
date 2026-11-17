@@ -53,11 +53,22 @@
     margin-block-start: 0;
 }
 
-/* Double-clicking a row opens its editor; hint the affordance. */
+/* Double-clicking a row opens its editor; hint the affordance, and don't let the
+   double-click select the row's text on the way. Handles and URI formats stay
+   selectable. (Rows already highlight on hover: Craft styles that.) */
 #ct-fields-table table.data tbody tr,
 #ct-entry-types-table table.data tbody tr,
 #ct-sections-table table.data tbody tr {
     cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#ct-fields-table table.data tbody tr code,
+#ct-entry-types-table table.data tbody tr code,
+#ct-sections-table table.data tbody tr code {
+    user-select: text;
+    -webkit-user-select: text;
 }
 
 /* Nested instance rows, on both pages.
