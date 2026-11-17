@@ -1,0 +1,7 @@
+# Kept out of the Composer dist archive: nothing here is needed by an install.
+/.gitattributes     export-ignore
+/.github            export-ignore
+/.gitignore         export-ignore
+/ecs.php            export-ignore
+/phpstan.neon       export-ignore
+/tests              export-ignore

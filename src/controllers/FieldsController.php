@@ -519,7 +519,7 @@ class FieldsController extends Controller
             return null;
         }
 
-        return $field->translationMethod ?: Field::TRANSLATION_METHOD_NONE;
+        return $field->translationMethod;
     }
 
     /**
