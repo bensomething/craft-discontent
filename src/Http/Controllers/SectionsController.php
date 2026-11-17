@@ -9,6 +9,7 @@ use bensomething\discontent\Plugin;
 use CraftCms\Cms\Config\GeneralConfig;
 use CraftCms\Cms\Cp\Components\CopyAttribute;
 use CraftCms\Cms\Cp\Html\PreviewHtml;
+use CraftCms\Cms\Edition;
 use CraftCms\Cms\Entry\Data\EntryType;
 use CraftCms\Cms\Http\Requests\TableRequest;
 use CraftCms\Cms\Http\Responses\CpScreenResponse;
@@ -20,6 +21,7 @@ use CraftCms\Cms\Ui\Nodes\Table;
 use CraftCms\Cms\Ui\Ui;
 use CraftCms\Cms\Ui\UiContext;
 use CraftCms\Cms\Ui\UiResolver;
+use CraftCms\Cms\Workflow\Models\Workflow;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -28,8 +30,8 @@ use function CraftCms\Cms\t;
 
 /**
  * The Sections page: Craft's Settings → Sections list, plus the entry types each section
- * uses, the URI format its entries get, a section-type filter, a URLs / versioning view
- * filter, and search.
+ * uses, the URI format its entries get, its workflow (on Pro, once there are any), a
+ * section-type filter, URLs / versioning / workflow views, and search.
  *
  * There's no unused or instances view, as there is for fields and entry types: a
  * section is a top-level thing that nothing uses or renames.
@@ -44,7 +46,7 @@ readonly class SectionsController
 
     private const string VIEW = 'view';
 
-    private const array VIEWS = ['urls', 'no-urls', 'versioned', 'unversioned'];
+    private const array VIEWS = ['urls', 'no-urls', 'versioned', 'unversioned', 'workflow', 'no-workflow'];
 
     private bool $readOnly;
 
@@ -81,10 +83,11 @@ readonly class SectionsController
     {
         $filters = $this->filterValues($request->query());
         $search = mb_strtolower($filters['search']);
+        $workflows = $this->workflows();
 
         $sections = $this->allSections()
-            ->filter(fn (Section $section) => $this->matchesFilters($section, $filters))
-            ->filter(fn (Section $section) => $search === '' || $this->matchesSearch($section, $search))
+            ->filter(fn (Section $section) => $this->matchesFilters($section, $filters, $workflows))
+            ->filter(fn (Section $section) => $search === '' || $this->matchesSearch($section, $search, $workflows))
             ->sort(fn (Section $a, Section $b) => match ($request->orderBy()) {
                 'handle' => strcasecmp((string) $a->handle, (string) $b->handle),
                 'type' => strcasecmp($this->typeLabel($a), $this->typeLabel($b)) ?: strcasecmp($a->getUiLabel(), $b->getUiLabel()),
@@ -99,7 +102,7 @@ readonly class SectionsController
         [$paged, $pagination] = $this->paginate($sections, $request->page(), $request->limit());
 
         return new JsonResponse([
-            'data' => Table::prepareRows(array_values($paged->map(fn (Section $section) => $this->row($section))->all())),
+            'data' => Table::prepareRows(array_values($paged->map(fn (Section $section) => $this->row($section, $workflows))->all())),
             'pagination' => $pagination,
         ]);
     }
@@ -108,11 +111,12 @@ readonly class SectionsController
     private function ui(array $values): Ui
     {
         $typeOptions = $this->typeOptions($values[self::TYPE]);
+        $workflows = $this->workflows();
 
         $filters = [
             // "All" plus one type filters to everything, so only offer it with two or more.
             ...(count($typeOptions) > 2 ? $this->filterField(t('Section Type', category: 'discontent'), self::TYPE, $typeOptions) : []),
-            ...$this->filterField(t('Filter', category: 'discontent'), self::VIEW, $this->viewOptions($values[self::VIEW])),
+            ...$this->filterField(t('Filter', category: 'discontent'), self::VIEW, $this->viewOptions($values[self::VIEW], $workflows)),
         ];
         array_unshift($filters, $this->searchField(count($filters)));
 
@@ -124,6 +128,7 @@ readonly class SectionsController
                 ['key' => 'entryTypes', 'label' => t('Entry Types', category: 'discontent')],
                 ['key' => 'urls', 'label' => t('URLs', category: 'discontent')],
                 ['key' => 'versioning', 'label' => t('Versioning', category: 'discontent')],
+                ...($workflows !== [] ? [['key' => 'workflow', 'label' => t('Workflow', category: 'discontent')]] : []),
             ])
             ->dataUrl(route('discontent.sections.data', array_filter($values)))
             // Craft's own column menu: each person shows, hides and reorders columns for
@@ -150,6 +155,32 @@ readonly class SectionsController
             self::TYPE => $this->allowedValue($input, self::TYPE, array_column(SectionType::cases(), 'value')),
             self::VIEW => $this->allowedValue($input, self::VIEW, self::VIEWS),
         ];
+    }
+
+    /**
+     * Workflow names by ID. Empty below Pro, where Craft doesn't offer workflows (a
+     * section's leftover workflow does nothing there), and when none exist.
+     *
+     * @return array<int, string>
+     */
+    private function workflows(): array
+    {
+        if (! Edition::isAtLeast(Edition::Pro)) {
+            return [];
+        }
+
+        /** @var array<int, string> */
+        return Workflow::query()->orderBy('name')->pluck('name', 'id')->all();
+    }
+
+    /**
+     * The section's workflow, by name: null when it has none, or none that counts here.
+     *
+     * @param  array<int, string>  $workflows  from {@see workflows()}
+     */
+    private function workflowName(Section $section, array $workflows): ?string
+    {
+        return $section->workflowId !== null ? ($workflows[$section->workflowId] ?? null) : null;
     }
 
     /** @return Collection<int, Section> */
@@ -186,12 +217,13 @@ readonly class SectionsController
     }
 
     /**
-     * A URLs pair and a Versioning pair (see {@see viewPair()}), plus whichever is
-     * selected.
+     * A URLs pair, a Versioning pair and, when there are workflows, a Workflow pair (see
+     * {@see viewPair()}), plus whichever is selected.
      *
+     * @param  array<int, string>  $workflows
      * @return list<array{value: string, label: string, group?: string}>
      */
-    private function viewOptions(string $selected): array
+    private function viewOptions(string $selected, array $workflows): array
     {
         $sections = $this->allSections();
         $total = $sections->count();
@@ -214,11 +246,22 @@ readonly class SectionsController
                 $total,
                 $selected,
             ),
+            ...($workflows === [] && ! in_array($selected, ['workflow', 'no-workflow'], true) ? [] : $this->viewPair(
+                t('Workflow', category: 'discontent'),
+                ['workflow', t('Has workflow', category: 'discontent')],
+                ['no-workflow', t('No workflow', category: 'discontent')],
+                $sections->filter(fn (Section $section) => $this->workflowName($section, $workflows) !== null)->count(),
+                $total,
+                $selected,
+            )),
         ];
     }
 
-    /** @param array{search: string, type: string, view: string} $filters */
-    private function matchesFilters(Section $section, array $filters): bool
+    /**
+     * @param  array{search: string, type: string, view: string}  $filters
+     * @param  array<int, string>  $workflows
+     */
+    private function matchesFilters(Section $section, array $filters, array $workflows): bool
     {
         if ($filters[self::TYPE] !== '' && $section->type?->value !== $filters[self::TYPE]) {
             return false;
@@ -229,16 +272,19 @@ readonly class SectionsController
             'no-urls' => ! $this->hasUrls($section),
             'versioned' => $section->enableVersioning,
             'unversioned' => ! $section->enableVersioning,
+            'workflow' => $this->workflowName($section, $workflows) !== null,
+            'no-workflow' => $this->workflowName($section, $workflows) === null,
             default => true,
         };
     }
 
-    private function matchesSearch(Section $section, string $search): bool
+    /** @param  array<int, string>  $workflows */
+    private function matchesSearch(Section $section, string $search, array $workflows): bool
     {
         // Entry types by the name they go by here, so a search finds the sections using one.
         $entryTypes = array_map(fn (EntryType $type) => $type->getUiLabel(), $section->getEntryTypes());
 
-        foreach ([$section->getUiLabel(), (string) $section->handle, $this->typeLabel($section), ...$entryTypes] as $haystack) {
+        foreach ([$section->getUiLabel(), (string) $section->handle, $this->typeLabel($section), $this->workflowName($section, $workflows) ?? '', ...$entryTypes] as $haystack) {
             if (str_contains(mb_strtolower($haystack), $search)) {
                 return true;
             }
@@ -267,8 +313,11 @@ readonly class SectionsController
         return false;
     }
 
-    /** @return array<string, mixed> */
-    private function row(Section $section): array
+    /**
+     * @param  array<int, string>  $workflows
+     * @return array<string, mixed>
+     */
+    private function row(Section $section, array $workflows): array
     {
         $label = $section->getUiLabel();
         $url = route('craft.cp.settings.sections.edit', ['section' => $section->id]);
@@ -282,6 +331,9 @@ readonly class SectionsController
             'entryTypes' => ['html' => app(PreviewHtml::class)->componentPreviewHtml($section->getEntryTypes(), ['hyperlink' => true])],
             'urls' => $this->urlsCell($section),
             'versioning' => $this->flag($section->enableVersioning),
+            'workflow' => ($workflow = $this->workflowName($section, $workflows)) !== null
+                ? ['html' => Html::a(Html::encode($workflow), route('craft.cp.settings.workflows.edit', ['workflow' => $section->workflowId]))]
+                : $this->faintDash(t('No workflow', category: 'discontent')),
             ...($this->readOnly ? [] : [
                 '_deleteUrl' => route('craft.cp.settings.sections.destroy', ['section' => $section->id]),
                 '_deleteConfirmMessage' => t('Are you sure you want to delete “{name}” and all its entries?', ['name' => $label], 'discontent'),

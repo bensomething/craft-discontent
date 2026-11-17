@@ -3,8 +3,9 @@
 ## Unreleased
 
 ### Added
+- **Sections**: a **Workflow** column and **Has workflow** / **No workflow** views, on Craft Pro once a workflow exists.
 - **Fields** tool: Craft’s Settings → Fields list with a field-type dropdown (used types only), a view dropdown (**Show all** / **Unused** / **Has instances** / **Used for keywords**), search, sort, double-click-to-edit slideout, delete, and “New field”.
-- **Sections** tool: Craft’s Settings → Sections list with **URLs** and **Versioning** columns, a section-type dropdown, a view dropdown (**Show all** / **Has URLs** / **No URLs** / **Has versioning**), search, sort, double-click-to-edit slideout, delete, and “New section”. Both dropdowns are omitted when every section falls on the same side of them.
+- **Sections** tool: Craft’s Settings → Sections list with **URLs** and **Versioning** columns, a section-type dropdown, a view dropdown (**Show all** / **Has URLs** / **No URLs** / **Has versioning** / **No versioning**), search, sort, double-click-to-edit slideout, delete, and “New section”. Both dropdowns are omitted when every section falls on the same side of them.
 - **Entry Types** tool: usage filter (Section Entries / Matrix entries / Nested CKEditor entries), a view dropdown (**Show all** / **Unused** / **Has instances** / **Has slugs** / **Has statuses**), search, sort, double-click slideout, delete, and “New entry type”.
 - Canonical pages at `/discontent/*` with an in-page sidebar; native Settings → Sections / Fields / Entry Types redirect there when **Replace native pages** is on.
 - Shareable filtered URLs — filter state is reflected in query params.

@@ -48,3 +48,9 @@ craft-field-group > [data-ui-node^="discontent-"] .admin-table__header {
     color: var(--c-text-quiet);
     opacity: 0.5;
 }
+
+/* Chip columns (Entry Types, Used by): keep the "+N" beside the first chip, rather
+   than letting a narrow column drop it onto a line of its own. */
+[data-ui-node^="discontent-"] td .flex-wrap:has(> [data-preview-count-badge]) {
+    flex-wrap: nowrap;
+}

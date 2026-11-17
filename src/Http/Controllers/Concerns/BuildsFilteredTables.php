@@ -174,8 +174,19 @@ trait BuildsFilteredTables
             return ['icon' => 'check', 'label' => t('Yes', category: 'discontent')];
         }
 
+        return $this->faintDash(t('No', category: 'discontent'));
+    }
+
+    /**
+     * A faint dash for an empty cell, there to hold the column's shape rather than to be
+     * read. Screen readers get `$spoken` in its place.
+     *
+     * @return array{html: string}
+     */
+    private function faintDash(string $spoken): array
+    {
         return ['html' => Html::tag('span', '—', ['class' => 'discontent-faint', 'aria-hidden' => 'true'])
-            .Html::tag('span', t('No', category: 'discontent'), ['class' => 'sr-only'])];
+            .Html::tag('span', Html::encode($spoken), ['class' => 'sr-only'])];
     }
 
     /**

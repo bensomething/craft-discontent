@@ -30,8 +30,9 @@ By default Discontent **replaces** Craft’s native Settings → Sections, Entry
 
 **Sections**
 - **URLs** and **Versioning** columns — the entry URI format entries get (or “No URLs”), and whether they’re versioned
+- **Workflow** column (Craft Pro, once a workflow exists) — the workflow drafts must complete, linked to its settings
 - Filter by section type: **Singles**, **Channels**, or **Structures**
-- View: **Show all**, **Has URLs**, **No URLs**, or **Has versioning** (a section counts as routed if it has URLs in at least one site)
+- View: **Show all**, **Has URLs** / **No URLs** (a section counts as routed if it has URLs in at least one site), **Has versioning** / **No versioning**, or **Has workflow** / **No workflow**; search also matches workflow names
 - Search, sort, double-click a row to edit in a slideout, delete, and “New section”
 
 **Entry Types**
