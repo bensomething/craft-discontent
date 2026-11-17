@@ -71,14 +71,13 @@ craft-field-group > [data-ui-node^="discontent-"] .admin-table.admin-table--flus
     font-style: italic;
 }
 
-/* Sections' URLs column takes the table's spare width, so it's what gives way when
-   space is short. A URI format is cut off with an ellipsis at whatever width that
-   leaves it, and never past 30rem however wide the screen (in full on hover). The
-   formats ask for no width of their own (width 0, then grown to the cell), so they
-   never push the table wider than the page. */
-[data-ui-node^="discontent-sections"] tbody .cp-table-cell:not(.cp-table-cell--urls) {
-    width: 1%; /* as narrow as their content allows, leaving the rest to URLs */
-    white-space: nowrap;
+/* Sections' URLs column: a quarter of the table at most, so on a wide screen the spare
+   width spreads across every column rather than pooling here, and less when space is
+   short. A URI format is cut off with an ellipsis at whatever width the column has, and
+   never past 30rem (in full on hover). The formats ask for no width of their own (width
+   0, then grown to the cell), so they never push the table wider than the page. */
+[data-ui-node^="discontent-sections"] tbody .cp-table-cell--urls {
+    width: 25%;
 }
 
 .discontent-uris {
