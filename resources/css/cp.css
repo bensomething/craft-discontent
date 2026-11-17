@@ -16,6 +16,10 @@ craft-field-group:has(> [data-ui-node^="discontent-"]) {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
+    /* Spaced like Craft's own index pages: the search just under the title, the table
+       just under the search. */
+    padding-block-start: 0;
+    row-gap: 8px;
 }
 
 craft-field-group:has(> [data-ui-node^="discontent-"]) > craft-field {
@@ -31,15 +35,21 @@ craft-field-group > craft-field:has(+ [data-ui-node^="discontent-"]) {
     margin-inline-end: 76px; /* the View button, plus the row's gap */
 }
 
+/* The table is flush, like an element index: its row dividers run to the page's edges
+   and its cells' padding lines their text up with the fields above. Craft only does
+   that for a table that's alone on its page, so it's pulled out across the page's
+   padding here. */
 craft-field-group > [data-ui-node^="discontent-"] {
-    flex: 0 0 100%;
+    flex: 0 0 calc(100% + 2 * var(--cp-container-padding));
+    margin-inline: calc(-1 * var(--cp-container-padding));
 }
 
-craft-field-group > [data-ui-node^="discontent-"] .admin-table__header {
+craft-field-group > [data-ui-node^="discontent-"] .admin-table.admin-table--flush .admin-table__header {
     position: absolute;
-    inset-block-start: 16px; /* the group's top padding, level with the fields */
+    inset-block-start: 0; /* level with the fields */
     inset-inline-end: 0;
     margin: 0;
+    padding-inline: 0; /* flush pads it to the page's edge, which this is placed against already */
 }
 
 /* The dash in a tick column (Versioning, Slug, Status): it holds the column's shape, so
@@ -59,4 +69,33 @@ craft-field-group > [data-ui-node^="discontent-"] .admin-table__header {
 .discontent-quiet {
     color: var(--c-text-quiet);
     font-style: italic;
+}
+
+/* Sections' URLs column takes the table's spare width, and a URI format is cut off
+   with an ellipsis at whatever width that leaves it (in full on hover). The format
+   asks for no width of its own (width 0, then grown to the cell), so it never pushes
+   the table wider than the page. */
+[data-ui-node^="discontent-sections"] tbody .cp-table-cell:not(.cp-table-cell--urls) {
+    width: 1%; /* as narrow as their content allows, leaving the rest to URLs */
+    white-space: nowrap;
+}
+
+.discontent-uris {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 0;
+    min-width: 100%;
+}
+
+.discontent-uris > code {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.discontent-uris > :not(code) {
+    flex: none;
+    white-space: nowrap;
 }

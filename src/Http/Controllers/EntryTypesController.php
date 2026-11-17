@@ -9,6 +9,7 @@ use bensomething\discontent\Plugin;
 use bensomething\discontent\Support\EntryTypeUsages;
 use CraftCms\Cms\Config\GeneralConfig;
 use CraftCms\Cms\Cp\Components\CopyAttribute;
+use CraftCms\Cms\Cp\Enums\TableAppearance;
 use CraftCms\Cms\Cp\Html\ElementHtml;
 use CraftCms\Cms\Cp\Html\PreviewHtml;
 use CraftCms\Cms\Entry\Data\EntryType;
@@ -80,6 +81,9 @@ readonly class EntryTypesController
             ->addCrumb((string) Plugin::getInstance()->name, 'discontent')
             ->ui($this->ui($values), new UiContext(values: $values, refreshable: true), [
                 'refreshUrl' => route('discontent.entry-types.render-ui'),
+                // Full width, like an element index: these tables have more columns than
+                // Craft's settings width fits.
+                'contentMaxWidth' => false,
             ]);
     }
 
@@ -149,6 +153,7 @@ readonly class EntryTypesController
         array_unshift($filters, $this->searchField(count($filters)));
 
         $table = Table::make($this->tableKey('entry-types', $values))
+            ->appearance(TableAppearance::Flush)
             ->columns([
                 ['key' => 'name', 'label' => t('Entry Type', category: 'discontent'), 'sortable' => true],
                 ['key' => 'handle', 'label' => t('Handle', category: 'discontent'), 'sortable' => true],

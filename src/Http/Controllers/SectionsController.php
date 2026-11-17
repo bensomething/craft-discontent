@@ -8,6 +8,8 @@ use bensomething\discontent\Http\Controllers\Concerns\BuildsFilteredTables;
 use bensomething\discontent\Plugin;
 use CraftCms\Cms\Config\GeneralConfig;
 use CraftCms\Cms\Cp\Components\CopyAttribute;
+use CraftCms\Cms\Cp\Enums\TableAppearance;
+use CraftCms\Cms\Cp\Html\ElementHtml;
 use CraftCms\Cms\Cp\Html\PreviewHtml;
 use CraftCms\Cms\Edition;
 use CraftCms\Cms\Entry\Data\EntryType;
@@ -19,6 +21,7 @@ use CraftCms\Cms\Site\Data\Site;
 use CraftCms\Cms\Support\Facades\Sections;
 use CraftCms\Cms\Support\Facades\Sites;
 use CraftCms\Cms\Support\Html;
+use CraftCms\Cms\Support\Json;
 use CraftCms\Cms\Ui\Nodes\Table;
 use CraftCms\Cms\Ui\Ui;
 use CraftCms\Cms\Ui\UiContext;
@@ -67,6 +70,9 @@ readonly class SectionsController
             ->addCrumb((string) Plugin::getInstance()->name, 'discontent')
             ->ui($this->ui($values), new UiContext(values: $values, refreshable: true), [
                 'refreshUrl' => route('discontent.sections.render-ui'),
+                // Full width, like an element index: these tables have more columns than
+                // Craft's settings width fits.
+                'contentMaxWidth' => false,
             ]);
     }
 
@@ -123,6 +129,7 @@ readonly class SectionsController
         array_unshift($filters, $this->searchField(count($filters)));
 
         $table = Table::make($this->tableKey('sections', $values))
+            ->appearance(TableAppearance::Flush)
             ->columns([
                 ['key' => 'name', 'label' => t('Name', category: 'discontent'), 'sortable' => true],
                 ['key' => 'handle', 'label' => t('Handle', category: 'discontent'), 'sortable' => true],
@@ -346,7 +353,7 @@ readonly class SectionsController
             'type' => $this->typeLabel($section),
             // As the section names them: an entry type renamed here shows that name.
             'entryTypes' => ['html' => app(PreviewHtml::class)->componentPreviewHtml($section->getEntryTypes(), ['hyperlink' => true])],
-            'sites' => ['html' => app(PreviewHtml::class)->componentPreviewHtml($this->sites($section), ['hyperlink' => true])],
+            'sites' => $this->sitesCell($section),
             'urls' => $this->urlsCell($section),
             'versioning' => $this->flag($section->enableVersioning),
             'workflow' => ($workflow = $this->workflowName($section, $workflows)) !== null
@@ -357,6 +364,38 @@ readonly class SectionsController
                 '_deleteConfirmMessage' => t('Are you sure you want to delete “{name}” and all its entries?', ['name' => $label], 'discontent'),
             ]),
         ];
+    }
+
+    /**
+     * The section's sites as chips, each linked to its site settings, the first shown with
+     * a "+N" for the rest, as Craft's component previews do. Craft's own preview can't
+     * link a site (sites have no edit URL of their own), so it's built the same way here
+     * with each chip's label linked.
+     *
+     * @return array{html: string}
+     */
+    private function sitesCell(Section $section): array
+    {
+        $chips = array_map(fn (Site $site) => app(ElementHtml::class)->chipHtml($site, [
+            'labelHtml' => Html::a(Html::encode($site->getUiLabel()), route('craft.cp.settings.sites.edit', ['site' => $site->id])),
+        ]), $this->sites($section));
+
+        if ($chips === []) {
+            return ['html' => ''];
+        }
+
+        $html = array_shift($chips);
+
+        if ($chips !== []) {
+            $html .= Html::tag('craft-button', '+'.count($chips), [
+                'type' => 'button',
+                'size' => 'small',
+                'variant' => 'plain',
+                'data' => ['other' => Json::encode(implode('', $chips)), 'preview-count-badge' => true],
+            ]);
+        }
+
+        return ['html' => Html::tag('div', $html, ['class' => 'flex flex-wrap items-center gap-sm'])];
     }
 
     /**
@@ -382,17 +421,14 @@ readonly class SectionsController
 
         $formats = array_keys($formats);
 
-        // Long formats are cut off with an ellipsis, in full on hover, so one can't
-        // stretch the table past the page.
-        $html = Html::tag('code', Html::encode((string) $formats[0]), [
-            'title' => (string) $formats[0],
-            'style' => 'display: block; max-width: 15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap',
-        ]);
+        // Long formats are cut off with an ellipsis at whatever width the column has (see
+        // .discontent-uris), in full on hover, so one can't stretch the table past the page.
+        $html = Html::tag('code', Html::encode((string) $formats[0]), ['title' => (string) $formats[0]]);
 
         if (count($formats) > 1) {
             $html .= Html::tag('span', Html::encode(t('+ {count, number} more', ['count' => count($formats) - 1], 'discontent')), ['class' => 'light']);
         }
 
-        return ['html' => Html::tag('span', $html, ['class' => 'flex gap-2 items-center', 'style' => 'min-width: 0'])];
+        return ['html' => Html::tag('span', $html, ['class' => 'discontent-uris'])];
     }
 }
