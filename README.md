@@ -2,64 +2,69 @@
 
 # Discontent
 
-A Craft CMS plugin that supercharges the admin-facing **Sections**, **Entry Types** and **Fields** screens with filtering — by type/usage, by whether they’re actually used, and by where they’re used under another name — so you can find and clean up fast.
+Better **Sections**, **Entry Types** and **Fields** pages for Craft CMS: see where everything is used, find what isn't, and filter down to what you're cleaning up.
 
 ## Requirements
 
-- Craft CMS 5.10 or later
-- PHP 8.2 or later
+Craft CMS 6 and PHP 8.5+. For Craft 5, use Discontent 1.x.
 
 ## Installation
 
-This is a private plugin, so add the VCS repository first:
-
-```json
-"repositories": [
-    { "type": "vcs", "url": "git@github.com:bensomething/craft-discontent.git", "no-api": true }
-]
-```
-
 ```bash
-composer require bensomething/craft-discontent:dev-develop
-php craft plugin/install discontent
+composer require bensomething/craft-discontent:^2.0.0-beta
+php artisan craft:plugin:install discontent
 ```
 
 ## What it does
 
-By default Discontent **replaces** Craft’s native Settings → Sections, Entry Types and Fields index pages with enhanced versions (the New/Edit screens stay native). Everything is admin-only and read-through — it reuses Craft’s own edit, save, and delete actions.
+Discontent replaces Craft's Settings → Sections, Entry Types and Fields pages with its own. The new and edit screens stay Craft's, and everything is admin-only.
 
-**Sections**
-- **Entry Types** column — the entry types each section uses, as it names them
-- **Sites** column (multi-site installs) — the sites each section is enabled for, linked to their settings
-- **URLs** and **Versioning** columns — the entry URI format entries get (or “No URLs”), and whether they’re versioned
-- **Workflow** column (Craft Pro, once a workflow exists) — the workflow drafts must complete, linked to its settings
-- Filter by section type: **Singles**, **Channels**, or **Structures**
-- View: **Show all**, **Has URLs** / **No URLs** (a section counts as routed if it has URLs in at least one site), **Has versioning** / **No versioning**, or **Has workflow** / **No workflow**; search also matches workflow names
-- Search, sort, double-click a row to edit in a slideout, delete, and “New section”
+All three pages have search, sorting, and double-click to edit in a slideout. The **View** menu shows, hides and reorders columns. The search and filters live in the URL, so a filtered list can be bookmarked or shared.
 
-**Entry Types**
-- Filter by usage: **Section Entries**, **Matrix entries**, or **Nested CKEditor entries**
-- View: **Show all**, **Unused** (used by no section or field), **Has instances** — entry types renamed where they’re used, each instance nested under it — **Has slugs**, or **Has statuses**
-- **Show Slug** and **Show Status** columns — a tick when authors see those fields, a faint dash when they don’t
-- Search, sort, double-click to edit in a slideout, delete, and “New entry type”
+### Sections
 
-**Fields**
-- Filter by field type (only types actually in use are listed)
-- View: **Show all**, **Unused** (not in any field layout), **Has instances** — fields used under a different label or handle, each instance nested under its field — or **Used for keywords**
-- **Used by** shows the layouts a field is in as chips, the first plus a “+N” for the rest, falling back to Craft’s count when not every layout can be named
-- **Used for keywords** column — whether the field’s values feed element search
-- **Translation Method** column (multi-site installs) — “Each site”, “Each site group”, “Each language” or “Custom”, with **Translatable** / **Not translatable** views
-- Search, sort, double-click a row to edit in a slideout, delete, and “New field”
+| Column | Shows |
+|---|---|
+| Entry Types | The entry types the section uses, by the name they have there |
+| Sites | The sites it's enabled for, linked to their settings (multi-site only) |
+| URLs | The URI format its entries get |
+| Versioning | Whether its entries are versioned |
+| Workflow | The workflow its drafts go through (Craft Pro, once a workflow exists) |
 
-**Shareable views** — the current search/filter state lives in the URL, so you can bookmark or share a link to a filtered set.
+Filter by **section type**, or show: **Has / No URLs**, **Has / No versioning** and **Has / No workflow**.
+
+### Entry Types
+
+| Column | Shows |
+|---|---|
+| Used by | The sections and fields using it |
+| Slug, Status, Post Date, Expiry Date | Whether authors see those fields |
+
+Filter by **usage** (sections, Matrix, CKEditor or other nested entries), or show: **Unused**, **Has instances** (renamed where it's used, each instance listed under it), and **Has / No** for each of the four fields.
+
+### Fields
+
+| Column | Shows |
+|---|---|
+| Used by | The layouts using it |
+| Used for keywords | Whether its values feed search |
+| Translation Method | How its values are translated (multi-site only) |
+
+Filter by **field type**, or show: **Unused**, **Has instances** (used under another label or handle, each instance listed under it), **Used / Not used for keywords** and **Translatable / Not translatable**.
+
+A filter is only offered when it would actually narrow the list.
+
+## Navigation
+
+Discontent adds a nav item for admins at the end of the **Content** group, with the three pages under it. Rename, move or hide it with Craft's own **Settings → Control Panel Navigation**.
 
 ## Settings
 
-At **Settings → Plugins → Discontent**:
+Under **Settings → Plugins → Discontent**:
 
-- **Plugin name** — the public-facing name (nav item, page titles, plugin list).
-- **Replace native pages** — on by default; turn off to keep Craft’s native pages and leave the tool dormant.
-- **Show in main navigation** — off by default; adds a top-level nav item with a Sections / Entry Types / Fields / Settings subnav.
-- **Default view** — which page the main-nav item opens (shown when the nav item is enabled).
+| Setting | Default | |
+|---|---|---|
+| Replace native pages | On | Off keeps Craft's own pages |
+| Default view | Fields | The page the nav item opens |
 
-The pages live canonically at `/discontent/*`; with **Replace native pages** on, the native Settings links redirect there.
+Either can be set in `config/craft/discontent.php` instead (publish it with `php artisan vendor:publish --tag=discontent`), which locks it in the control panel.
