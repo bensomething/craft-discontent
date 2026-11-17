@@ -29,6 +29,8 @@ php craft plugin/install discontent
 By default Discontent **replaces** Craft’s native Settings → Sections, Entry Types and Fields index pages with enhanced versions (the New/Edit screens stay native). Everything is admin-only and read-through — it reuses Craft’s own edit, save, and delete actions.
 
 **Sections**
+- **Entry Types** column — the entry types each section uses, as it names them
+- **Sites** column (multi-site installs) — the sites each section is enabled for, linked to their settings
 - **URLs** and **Versioning** columns — the entry URI format entries get (or “No URLs”), and whether they’re versioned
 - **Workflow** column (Craft Pro, once a workflow exists) — the workflow drafts must complete, linked to its settings
 - Filter by section type: **Singles**, **Channels**, or **Structures**
