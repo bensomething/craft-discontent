@@ -34,16 +34,14 @@
     user-select: none;
 }
 
-/* On smaller screens: search on its own row, then the dropdown + switch sit
-   together below (the dropdown keeps its width; the switch stays beside it). */
-@media (max-width: 767px) {
-    #ct-toolbar {
-        flex-wrap: wrap;
-    }
+/* The search fills the row; the dropdowns share it for as long as they fit, then
+   wrap beneath (the search asks for only a little width, so that's late). */
+#ct-toolbar {
+    flex-wrap: wrap;
+}
 
-    #ct-toolbar > .texticon.search {
-        flex: 1 1 100%;
-    }
+#ct-toolbar > .texticon.search {
+    flex: 1 1 8rem;
 }
 
 /* Craft’s .tablepane pulls itself up with a negative top margin (meant for
