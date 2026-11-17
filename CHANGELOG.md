@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added a **Sites** column to the Sections page on multi-site installs, and searching Sections now matches site names.
 - Added a **Translation Method** column to the Fields page on multi-site installs, with **Translatable** / **Not translatable** views.
 
 ## 1.0.0-beta.2 - 2026-11-16

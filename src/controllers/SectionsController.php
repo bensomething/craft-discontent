@@ -7,8 +7,10 @@ use Craft;
 use craft\helpers\AdminTable;
 use craft\helpers\Cp;
 use craft\helpers\Html;
+use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\Section;
+use craft\models\Site;
 use craft\web\Controller;
 use yii\web\Response;
 
@@ -102,6 +104,7 @@ class SectionsController extends Controller
             // Rendered once for the Versioning column rather than per row
             // (there’s no iconSvg() in Twig).
             'checkIcon' => Cp::iconSvg('check'),
+            'showSites' => Craft::$app->getIsMultiSite(),
             'initialSearch' => (string)$request->getParam('search', ''),
             'initialFilter' => $initialFilter,
             'initialView' => $initialView,
@@ -152,6 +155,11 @@ class SectionsController extends Controller
                         return true;
                     }
                 }
+                foreach ($this->sites($s) as $site) {
+                    if (str_contains(mb_strtolower($site->getUiLabel()), $term)) {
+                        return true;
+                    }
+                }
 
                 return str_contains(mb_strtolower($s->getUiLabel()), $term)
                     || str_contains(mb_strtolower((string)$s->handle), $term)
@@ -189,6 +197,7 @@ class SectionsController extends Controller
                 // As the section names them: an entry type renamed here shows
                 // that name.
                 'entryTypes' => Cp::componentPreviewHtml($section->getEntryTypes(), ['hyperlink' => true]),
+                'sites' => $this->sitesHtml($section),
                 'versioning' => $section->enableVersioning,
                 'urls' => $this->urlsHtml($section),
             ];
@@ -216,6 +225,54 @@ class SectionsController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * The sites a section is enabled for, in the sites’ own order.
+     *
+     * @return Site[]
+     */
+    private function sites(Section $section): array
+    {
+        $ids = array_keys($section->getSiteSettings());
+
+        return array_values(array_filter(
+            Craft::$app->getSites()->getAllSites(),
+            fn(Site $site) => in_array($site->id, $ids),
+        ));
+    }
+
+    /**
+     * The section’s sites as chips, each linked to its site settings, the first
+     * shown with a “+N” for the rest, as Craft’s component previews do.
+     * Cp::componentPreviewHtml() can’t link a site (sites have no edit URL of
+     * their own), so it’s built the same way here with each chip’s label
+     * linked.
+     */
+    private function sitesHtml(Section $section): string
+    {
+        $chips = array_map(fn(Site $site) => Cp::chipHtml($site, [
+            'labelHtml' => Html::a(Html::encode($site->getUiLabel()), UrlHelper::cpUrl("settings/sites/$site->id")),
+        ]), $this->sites($section));
+
+        if ($chips === []) {
+            return '';
+        }
+
+        $html = array_shift($chips);
+
+        if ($chips !== []) {
+            $html .= Html::tag('span', '+' . count($chips), [
+                'class' => 'btn small',
+                'role' => 'button',
+                'tabindex' => '0',
+                'data' => ['other' => Json::encode(implode('', $chips))],
+                'onkeydown' => 'Craft.cp.previewCountBadge(event, this, false)',
+                'onclick' => 'Craft.cp.previewCountBadge(event, this, false)',
+            ]);
+        }
+
+        return Html::tag('div', $html, ['class' => 'inline-chips']);
     }
 
     /**
