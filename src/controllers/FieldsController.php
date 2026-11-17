@@ -8,6 +8,7 @@ use craft\base\Chippable;
 use craft\base\Colorable;
 use craft\base\CpEditable;
 use craft\base\ElementInterface;
+use craft\base\Field;
 use craft\base\FieldInterface;
 use craft\base\Iconic;
 use craft\elements\GlobalSet;
@@ -63,6 +64,8 @@ class FieldsController extends Controller
         $total = 0;
         $unusedCount = 0;
         $searchableCount = 0;
+        $translatableCount = 0;
+        $translationChoiceCount = 0;
         foreach ($fieldsService->getAllFields() as $field) {
             $total++;
             $usedTypes[$field::class] ??= $field->displayName();
@@ -72,7 +75,17 @@ class FieldsController extends Controller
             if ($field->searchable) {
                 $searchableCount++;
             }
+            $method = $this->translationMethod($field);
+            if ($method !== null) {
+                $translationChoiceCount++;
+                if ($method !== Field::TRANSLATION_METHOD_NONE) {
+                    $translatableCount++;
+                }
+            }
         }
+
+        // Translation only means anything with more than one site.
+        $isMultiSite = Craft::$app->getIsMultiSite();
 
         $types = [];
         foreach ($usedTypes as $value => $label) {
@@ -104,6 +117,17 @@ class FieldsController extends Controller
             $total,
             $initialView,
         ));
+        if ($isMultiSite || in_array($initialView, ['translatable', 'not-translatable'], true)) {
+            // Out of the fields whose type gives a choice (see translationMethod()).
+            array_push($views, ...ViewOptions::pair(
+                Craft::t('discontent', 'Translation'),
+                ['translatable', Craft::t('discontent', 'Translatable')],
+                ['not-translatable', Craft::t('discontent', 'Not translatable')],
+                $translatableCount,
+                $translationChoiceCount,
+                $initialView,
+            ));
+        }
 
         return $this->renderTemplate('discontent/fields', [
             'fieldTypes' => $types,
@@ -112,6 +136,7 @@ class FieldsController extends Controller
             // Rendered once for the keywords column rather than per row
             // (there’s no iconSvg() in Twig).
             'checkIcon' => Cp::iconSvg('check'),
+            'showTranslation' => $isMultiSite,
             'initialSearch' => (string)$request->getParam('search', ''),
             'initialFilter' => (string)$request->getParam('type', ''),
             'initialView' => $initialView,
@@ -186,6 +211,10 @@ class FieldsController extends Controller
             $fields = array_filter($fields, fn(FieldInterface $f) => $f->searchable);
         } elseif ($view === 'no-keywords') {
             $fields = array_filter($fields, fn(FieldInterface $f) => !$f->searchable);
+        } elseif ($view === 'translatable') {
+            $fields = array_filter($fields, fn(FieldInterface $f) => !in_array($this->translationMethod($f), [null, Field::TRANSLATION_METHOD_NONE], true));
+        } elseif ($view === 'not-translatable') {
+            $fields = array_filter($fields, fn(FieldInterface $f) => $this->translationMethod($f) === Field::TRANSLATION_METHOD_NONE);
         }
 
         // Sort
@@ -231,6 +260,7 @@ class FieldsController extends Controller
                 'usages' => $this->usagesHtml($count, $scan['owners'][$field->uid] ?? []),
                 // Whether this field’s values become search keywords.
                 'keywords' => $field->searchable,
+                'translation' => $this->translationHtml($field),
             ];
 
             // Instance rows, nested directly under the field they belong to.
@@ -250,6 +280,7 @@ class FieldsController extends Controller
                     // An instance is the same field, so it feeds search the
                     // same way.
                     'keywords' => $field->searchable,
+                    'translation' => $this->translationHtml($field),
                     // Where a double-click takes this row: the layout’s owner.
                     'instance' => [
                         'slideout' => $instance['owner']['slideout'],
@@ -474,6 +505,50 @@ class FieldsController extends Controller
             : Html::tag('span', Html::encode($name));
 
         return Html::tag('div', $html, ['class' => ['flex', 'flex-nowrap', 'gap-s']]);
+    }
+
+    /**
+     * The field’s chosen translation method, or null when its type fixes it
+     * (Matrix and Addresses are always per site; their propagation method is
+     * what varies). Showing a fixed method as though it were a setting would
+     * mislead.
+     */
+    private function translationMethod(FieldInterface $field): ?string
+    {
+        if (count($field::supportedTranslationMethods()) < 2) {
+            return null;
+        }
+
+        return $field->translationMethod ?: Field::TRANSLATION_METHOD_NONE;
+    }
+
+    /**
+     * How a field’s values are translated, said shortly (the column names the
+     * rest), or a faint dash when they aren’t or its type gives no choice. A
+     * custom method shows its translation key format on hover.
+     */
+    private function translationHtml(FieldInterface $field): string
+    {
+        $method = $this->translationMethod($field);
+
+        $label = match ($method) {
+            Field::TRANSLATION_METHOD_SITE => Craft::t('discontent', 'Each site'),
+            Field::TRANSLATION_METHOD_SITE_GROUP => Craft::t('discontent', 'Each site group'),
+            Field::TRANSLATION_METHOD_LANGUAGE => Craft::t('discontent', 'Each language'),
+            Field::TRANSLATION_METHOD_CUSTOM => Craft::t('discontent', 'Custom'),
+            default => null,
+        };
+
+        if ($label === null) {
+            return Html::tag('span', '&mdash;', ['class' => 'ct-faint', 'aria-hidden' => 'true']) .
+                Html::tag('span', Html::encode($method === null
+                    ? Craft::t('discontent', 'Set by the field type')
+                    : Craft::t('discontent', 'Not translatable')), ['class' => 'visually-hidden']);
+        }
+
+        return Html::tag('span', Html::encode($label), $method === Field::TRANSLATION_METHOD_CUSTOM
+            ? ['title' => (string)$field->translationKeyFormat]
+            : []);
     }
 
     /**

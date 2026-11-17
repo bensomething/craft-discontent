@@ -90,6 +90,13 @@
                 title: Craft.t('discontent', 'Used for keywords'),
                 callback: Craft.Discontent.flag({{ checkIcon|json_encode|raw }}),
             },
+            {% if showTranslation %}
+            {
+                name: 'translation',
+                title: Craft.t('discontent', 'Translation Method'),
+                callback: (value) => value,
+            },
+            {% endif %}
         ];
 
         new Craft.Discontent.FilterTable({

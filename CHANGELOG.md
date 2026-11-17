@@ -1,5 +1,9 @@
 # Release Notes for Discontent
 
+## Unreleased
+
+- Added a **Translation Method** column to the Fields page on multi-site installs, with **Translatable** / **Not translatable** views.
+
 ## 1.0.0-beta.2 - 2026-11-16
 
 - Added an **Entry Types** column to the Sections page, and searching Sections now matches entry type names.
