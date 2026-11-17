@@ -113,7 +113,7 @@ final class FieldsPageTest extends TestCase
         [$body, $colour, $summary] = $this->rows();
 
         $this->assertStringContainsString('Article', $colour['usages']['html']);
-        $this->assertSame('No usages', $summary['usages']);
+        $this->assertStringContainsString('>No usages</span>', $summary['usages']['html']);
         // Body is in one layout twice: still one layout, so it's named.
         $this->assertStringContainsString('Article', $body['usages']['html']);
     }

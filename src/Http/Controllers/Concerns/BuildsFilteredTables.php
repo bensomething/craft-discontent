@@ -178,6 +178,17 @@ trait BuildsFilteredTables
     }
 
     /**
+     * Words for a cell with nothing in it that's still an answer ("No usages", "No
+     * URLs"): kept as words, since they're what someone is looking for, but quiet.
+     *
+     * @return array{html: string}
+     */
+    private function quiet(string $text): array
+    {
+        return ['html' => Html::tag('span', Html::encode($text), ['class' => 'discontent-quiet'])];
+    }
+
+    /**
      * A faint dash for an empty cell, there to hold the column's shape rather than to be
      * read. Screen readers get `$spoken` in its place.
      *

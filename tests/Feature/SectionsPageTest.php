@@ -8,6 +8,7 @@ use bensomething\discontent\tests\TestCase;
 use CraftCms\Cms\Cms;
 use CraftCms\Cms\Database\Factories\EntryTypeFactory;
 use CraftCms\Cms\Database\Factories\SectionFactory;
+use CraftCms\Cms\Database\Factories\SiteFactory;
 use CraftCms\Cms\Database\Factories\UserFactory;
 use CraftCms\Cms\Edition;
 use CraftCms\Cms\Entry\EntryTypes;
@@ -15,6 +16,7 @@ use CraftCms\Cms\Section\Enums\SectionType;
 use CraftCms\Cms\Section\Models\Section;
 use CraftCms\Cms\Section\Models\SectionSiteSettings;
 use CraftCms\Cms\Section\Sections;
+use CraftCms\Cms\Site\Sites;
 use CraftCms\Cms\Workflow\Models\Workflow;
 use Illuminate\Testing\TestResponse;
 use Override;
@@ -80,7 +82,7 @@ final class SectionsPageTest extends TestCase
         [$about, $docs] = $this->rows();
 
         $this->assertSame('Single', $about['type']);
-        $this->assertSame('No URLs', $about['urls']);
+        $this->assertStringContainsString('>No URLs</span>', $about['urls']['html']);
         $this->assertStringContainsString('discontent-faint', $about['versioning']['html']);
         $this->assertMatchesRegularExpression('#<code [^>]*title="docs/\{slug\}"[^>]*>docs/\{slug\}</code>#', $docs['urls']['html']);
         $this->assertSame('check', $docs['versioning']['icon']);
@@ -125,6 +127,19 @@ final class SectionsPageTest extends TestCase
     public function test_unknown_filters_are_ignored(): void
     {
         $this->assertSame(['About', 'Docs', 'News'], $this->names(['type' => 'nope', 'view' => 'nope']));
+    }
+
+    public function test_sites_only_show_on_multi_site_installs(): void
+    {
+        $this->assertNotContains('sites', $this->ui()['columns']);
+
+        SiteFactory::new()->create(['name' => 'Elsewhere']);
+        app(Sites::class)->isMultiSite(refresh: true);
+
+        $this->assertContains('sites', $this->ui()['columns']);
+        // Every fixture section is only in the primary site.
+        $this->assertStringNotContainsString('Elsewhere', $this->rows()[0]['sites']['html']);
+        $this->assertStringContainsString('<craft-chip', $this->rows()[0]['sites']['html']);
     }
 
     public function test_workflows_only_show_on_pro_once_there_is_one(): void

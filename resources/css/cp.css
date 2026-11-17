@@ -54,3 +54,9 @@ craft-field-group > [data-ui-node^="discontent-"] .admin-table__header {
 [data-ui-node^="discontent-"] td .flex-wrap:has(> [data-preview-count-badge]) {
     flex-wrap: nowrap;
 }
+
+/* "No usages", "No URLs": an answer, so it stays in words, but a quiet one. */
+.discontent-quiet {
+    color: var(--c-text-quiet);
+    font-style: italic;
+}

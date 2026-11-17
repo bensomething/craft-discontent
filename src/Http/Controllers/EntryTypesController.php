@@ -344,7 +344,7 @@ readonly class EntryTypesController
             'name' => ['html' => $name],
             'handle' => ['html' => CopyAttribute::make()->value((string) $type->handle)->toHtml()],
             'usages' => $usedBy === []
-                ? t('No usages', category: 'discontent')
+                ? $this->quiet(t('No usages', category: 'discontent'))
                 : ['html' => app(PreviewHtml::class)->componentPreviewHtml($usedBy, ['hyperlink' => true])],
             ...$this->shownFields($type),
             ...($this->readOnly ? [] : [

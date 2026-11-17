@@ -403,7 +403,7 @@ readonly class FieldsController
     private function usagesCell(int $count, array $owners): array|string
     {
         if ($count === 0) {
-            return t('No usages', category: 'discontent');
+            return $this->quiet(t('No usages', category: 'discontent'));
         }
 
         if ($count === count($owners)) {

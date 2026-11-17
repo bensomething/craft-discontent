@@ -15,7 +15,9 @@ use CraftCms\Cms\Http\Requests\TableRequest;
 use CraftCms\Cms\Http\Responses\CpScreenResponse;
 use CraftCms\Cms\Section\Data\Section;
 use CraftCms\Cms\Section\Enums\SectionType;
+use CraftCms\Cms\Site\Data\Site;
 use CraftCms\Cms\Support\Facades\Sections;
+use CraftCms\Cms\Support\Facades\Sites;
 use CraftCms\Cms\Support\Html;
 use CraftCms\Cms\Ui\Nodes\Table;
 use CraftCms\Cms\Ui\Ui;
@@ -126,6 +128,7 @@ readonly class SectionsController
                 ['key' => 'handle', 'label' => t('Handle', category: 'discontent'), 'sortable' => true],
                 ['key' => 'type', 'label' => t('Type', category: 'discontent'), 'sortable' => true],
                 ['key' => 'entryTypes', 'label' => t('Entry Types', category: 'discontent')],
+                ...(Sites::isMultiSite() ? [['key' => 'sites', 'label' => t('Sites', category: 'discontent')]] : []),
                 ['key' => 'urls', 'label' => t('URLs', category: 'discontent')],
                 ['key' => 'versioning', 'label' => t('Versioning', category: 'discontent')],
                 ...($workflows !== [] ? [['key' => 'workflow', 'label' => t('Workflow', category: 'discontent')]] : []),
@@ -181,6 +184,18 @@ readonly class SectionsController
     private function workflowName(Section $section, array $workflows): ?string
     {
         return $section->workflowId !== null ? ($workflows[$section->workflowId] ?? null) : null;
+    }
+
+    /**
+     * The sites a section is enabled for, in the sites' own order.
+     *
+     * @return list<Site>
+     */
+    private function sites(Section $section): array
+    {
+        $ids = $section->getSiteIds();
+
+        return array_values(Sites::getAllSites()->filter(fn (Site $site) => in_array($site->id, $ids, true))->all());
     }
 
     /** @return Collection<int, Section> */
@@ -284,7 +299,9 @@ readonly class SectionsController
         // Entry types by the name they go by here, so a search finds the sections using one.
         $entryTypes = array_map(fn (EntryType $type) => $type->getUiLabel(), $section->getEntryTypes());
 
-        foreach ([$section->getUiLabel(), (string) $section->handle, $this->typeLabel($section), $this->workflowName($section, $workflows) ?? '', ...$entryTypes] as $haystack) {
+        $sites = array_map(fn (Site $site) => $site->getUiLabel(), $this->sites($section));
+
+        foreach ([$section->getUiLabel(), (string) $section->handle, $this->typeLabel($section), $this->workflowName($section, $workflows) ?? '', ...$entryTypes, ...$sites] as $haystack) {
             if (str_contains(mb_strtolower($haystack), $search)) {
                 return true;
             }
@@ -329,6 +346,7 @@ readonly class SectionsController
             'type' => $this->typeLabel($section),
             // As the section names them: an entry type renamed here shows that name.
             'entryTypes' => ['html' => app(PreviewHtml::class)->componentPreviewHtml($section->getEntryTypes(), ['hyperlink' => true])],
+            'sites' => ['html' => app(PreviewHtml::class)->componentPreviewHtml($this->sites($section), ['hyperlink' => true])],
             'urls' => $this->urlsCell($section),
             'versioning' => $this->flag($section->enableVersioning),
             'workflow' => ($workflow = $this->workflowName($section, $workflows)) !== null
@@ -346,9 +364,9 @@ readonly class SectionsController
      * site: the first is shown with a count of the others, rather than a wall of
      * near-identical URIs.
      *
-     * @return array{html: string}|string
+     * @return array{html: string}
      */
-    private function urlsCell(Section $section): array|string
+    private function urlsCell(Section $section): array
     {
         $formats = [];
 
@@ -359,7 +377,7 @@ readonly class SectionsController
         }
 
         if ($formats === []) {
-            return t('No URLs', category: 'discontent');
+            return $this->quiet(t('No URLs', category: 'discontent'));
         }
 
         $formats = array_keys($formats);
