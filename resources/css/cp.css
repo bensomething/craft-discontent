@@ -118,3 +118,19 @@ craft-field-group > [data-ui-node^="discontent-"] .admin-table.admin-table--flus
     user-select: text;
     -webkit-user-select: text;
 }
+
+/* Small screens: the fields wrap, so there's no top-right corner to pin the View button
+   to. It drops back into the flow instead, on its own row above the table. */
+@media (max-width: 767px) {
+    craft-field-group > craft-field:has(+ [data-ui-node^="discontent-"]) {
+        margin-inline-end: 0;
+    }
+
+    craft-field-group > [data-ui-node^="discontent-"] .admin-table.admin-table--flush .admin-table__header {
+        position: static;
+        display: flex;
+        justify-content: flex-end;
+        padding-inline: var(--cp-container-padding);
+        margin-block-end: 8px;
+    }
+}
