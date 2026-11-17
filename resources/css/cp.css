@@ -71,10 +71,11 @@ craft-field-group > [data-ui-node^="discontent-"] .admin-table.admin-table--flus
     font-style: italic;
 }
 
-/* Sections' URLs column takes the table's spare width, and a URI format is cut off
-   with an ellipsis at whatever width that leaves it (in full on hover). The format
-   asks for no width of its own (width 0, then grown to the cell), so it never pushes
-   the table wider than the page. */
+/* Sections' URLs column takes the table's spare width, so it's what gives way when
+   space is short. A URI format is cut off with an ellipsis at whatever width that
+   leaves it, and never past 30rem however wide the screen (in full on hover). The
+   formats ask for no width of their own (width 0, then grown to the cell), so they
+   never push the table wider than the page. */
 [data-ui-node^="discontent-sections"] tbody .cp-table-cell:not(.cp-table-cell--urls) {
     width: 1%; /* as narrow as their content allows, leaving the rest to URLs */
     white-space: nowrap;
@@ -90,6 +91,7 @@ craft-field-group > [data-ui-node^="discontent-"] .admin-table.admin-table--flus
 
 .discontent-uris > code {
     min-width: 0;
+    max-width: 30rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -98,4 +100,21 @@ craft-field-group > [data-ui-node^="discontent-"] .admin-table.admin-table--flus
 .discontent-uris > :not(code) {
     flex: none;
     white-space: nowrap;
+}
+
+/* Rows highlight on hover, as an element index's do. */
+[data-ui-node^="discontent-"] .cp-table-row:hover > td {
+    background-color: var(--c-table-row-hover);
+}
+
+/* Double-clicking a row opens it; don't let that select the row's text on the way.
+   Handles have their copy button, and URI formats stay selectable. */
+[data-ui-node^="discontent-"] tbody .cp-table-row {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+[data-ui-node^="discontent-"] tbody .cp-table-row code {
+    user-select: text;
+    -webkit-user-select: text;
 }
