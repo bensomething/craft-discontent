@@ -44,10 +44,17 @@ craft-field-group > [data-ui-node^="discontent-"] {
     margin-inline: calc(-1 * var(--cp-container-padding));
 }
 
+/* The View button sits at the right of the last row of fields, however they wrap:
+   anchored to the top of the table, just above it. (The table is pulled out across
+   the page's padding, so the button is brought back in by the same.) */
+craft-field-group > [data-ui-node^="discontent-"] {
+    position: relative;
+}
+
 craft-field-group > [data-ui-node^="discontent-"] .admin-table.admin-table--flush .admin-table__header {
     position: absolute;
-    inset-block-start: 0; /* level with the fields */
-    inset-inline-end: 0;
+    inset-block-end: calc(100% + 8px); /* the group's row gap */
+    inset-inline-end: var(--cp-container-padding);
     margin: 0;
     padding-inline: 0; /* flush pads it to the page's edge, which this is placed against already */
 }
@@ -116,20 +123,4 @@ craft-field-group > [data-ui-node^="discontent-"] .admin-table.admin-table--flus
 [data-ui-node^="discontent-"] tbody .cp-table-row code {
     user-select: text;
     -webkit-user-select: text;
-}
-
-/* Small screens: the fields wrap, so there's no top-right corner to pin the View button
-   to. It drops back into the flow instead, on its own row above the table. */
-@media (max-width: 767px) {
-    craft-field-group > craft-field:has(+ [data-ui-node^="discontent-"]) {
-        margin-inline-end: 0;
-    }
-
-    craft-field-group > [data-ui-node^="discontent-"] .admin-table.admin-table--flush .admin-table__header {
-        position: static;
-        display: flex;
-        justify-content: flex-end;
-        padding-inline: var(--cp-container-padding);
-        margin-block-end: 8px;
-    }
 }
