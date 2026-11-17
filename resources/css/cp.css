@@ -28,7 +28,7 @@ craft-field-group:has(> [data-ui-node^="discontent-"]) > craft-field {
 }
 
 craft-field-group:has(> [data-ui-node^="discontent-"]) > craft-field#ui-search {
-    flex: 1 1 12rem;
+    flex: 1 1 8rem; /* small, so the dropdowns and View share its row for as long as they fit */
 }
 
 craft-field-group > craft-field:has(+ [data-ui-node^="discontent-"]) {
