@@ -368,7 +368,7 @@ readonly class SectionsController
         // stretch the table past the page.
         $html = Html::tag('code', Html::encode((string) $formats[0]), [
             'title' => (string) $formats[0],
-            'style' => 'display: block; max-width: 20rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap',
+            'style' => 'display: block; max-width: 15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap',
         ]);
 
         if (count($formats) > 1) {

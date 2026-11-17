@@ -9,13 +9,16 @@ use CraftCms\Cms\Cms;
 use CraftCms\Cms\Database\Factories\EntryTypeFactory;
 use CraftCms\Cms\Database\Factories\FieldFactory;
 use CraftCms\Cms\Database\Factories\FieldLayoutFactory;
+use CraftCms\Cms\Database\Factories\SiteFactory;
 use CraftCms\Cms\Database\Factories\UserFactory;
 use CraftCms\Cms\Edition;
 use CraftCms\Cms\Entry\EntryTypes;
+use CraftCms\Cms\Field\Addresses;
 use CraftCms\Cms\Field\Dropdown;
 use CraftCms\Cms\Field\Fields;
 use CraftCms\Cms\Field\PlainText;
 use CraftCms\Cms\FieldLayout\LayoutElements\CustomField;
+use CraftCms\Cms\Site\Sites;
 use Illuminate\Testing\TestResponse;
 use Override;
 
@@ -131,6 +134,36 @@ final class FieldsPageTest extends TestCase
         $this->assertStringContainsString('Note', $html);
     }
 
+    public function test_translation_only_shows_on_multi_site_installs(): void
+    {
+        $this->assertNotContains('translation', $this->ui()['columns']);
+        $this->assertNotContains('translatable', $this->ui()['fields']['view']);
+    }
+
+    public function test_the_translation_column_and_views(): void
+    {
+        SiteFactory::new()->create();
+        app(Sites::class)->isMultiSite(refresh: true);
+
+        $summary = app(Fields::class)->getFieldByHandle('summary');
+        $summary->translationMethod = 'siteGroup';
+        app(Fields::class)->saveField($summary);
+        FieldFactory::new()->create(['name' => 'Locations', 'handle' => 'locations', 'type' => Addresses::class]);
+        app(Fields::class)->refreshFields();
+
+        $this->assertContains('translation', $this->ui()['columns']);
+        $this->assertContains('translatable', $this->ui()['fields']['view']);
+
+        $cells = array_column($this->rows(), 'translation');
+        // Body and Colour aren't translated; an Addresses field is always per site.
+        $this->assertStringContainsString('Not translatable', $cells[0]['html']);
+        $this->assertStringContainsString('Set by the field type', $cells[2]['html']);
+        $this->assertSame('Each site group', $cells[3]);
+
+        $this->assertSame(['Summary'], $this->names(['view' => 'translatable']));
+        $this->assertSame(['Body', 'Colour'], $this->names(['view' => 'not-translatable']));
+    }
+
     public function test_search_finds_a_field_by_an_instance_handle_or_its_type(): void
     {
         $this->assertSame(['Body'], $this->names(['search' => 'INTRO']));
@@ -220,13 +253,14 @@ final class FieldsPageTest extends TestCase
         preg_match('/<script data-page="app"[^>]*>(.*?)<\/script>/s', $html, $m);
         $nodes = json_decode($m[1], true)['props']['ui']['nodes'];
 
-        $ui = ['fields' => [], 'createUrl' => null];
+        $ui = ['fields' => [], 'createUrl' => null, 'columns' => []];
 
         foreach ($nodes as $node) {
             if (isset($node['control']['path'])) {
                 $ui['fields'][end($node['control']['path'])] = array_column($node['control']['props']['options'] ?? [], 'value');
             } elseif (isset($node['props']['dataUrl'])) {
                 $ui['createUrl'] = $node['props']['createUrl'] ?? null;
+                $ui['columns'] = array_column($node['props']['columns'] ?? [], 'key');
             }
         }
 

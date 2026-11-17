@@ -16,10 +16,12 @@ use CraftCms\Cms\Cp\Components\Icon;
 use CraftCms\Cms\Cp\Html\PreviewHtml;
 use CraftCms\Cms\Cp\Icons;
 use CraftCms\Cms\Field\Contracts\FieldInterface;
+use CraftCms\Cms\Field\Enums\TranslationMethod;
 use CraftCms\Cms\Field\MissingField;
 use CraftCms\Cms\Http\Requests\TableRequest;
 use CraftCms\Cms\Http\Responses\CpScreenResponse;
 use CraftCms\Cms\Support\Facades\Fields;
+use CraftCms\Cms\Support\Facades\Sites;
 use CraftCms\Cms\Support\Html;
 use CraftCms\Cms\Ui\Nodes\Table;
 use CraftCms\Cms\Ui\Ui;
@@ -48,7 +50,7 @@ readonly class FieldsController
 
     private const string VIEW = 'view';
 
-    private const array VIEWS = ['unused', 'instances', 'keywords', 'no-keywords'];
+    private const array VIEWS = ['unused', 'instances', 'keywords', 'no-keywords', 'translatable', 'not-translatable'];
 
     private bool $readOnly;
 
@@ -143,6 +145,7 @@ readonly class FieldsController
                 ['key' => 'type', 'label' => t('Type', category: 'discontent'), 'sortable' => true],
                 ['key' => 'usages', 'label' => t('Used by', category: 'discontent')],
                 ['key' => 'keywords', 'label' => t('Used for keywords', category: 'discontent')],
+                ...(Sites::isMultiSite() ? [['key' => 'translation', 'label' => t('Translation Method', category: 'discontent')]] : []),
             ])
             ->dataUrl(route('discontent.fields.data', array_filter($values)))
             // Craft's own column menu: each person shows, hides and reorders columns for
@@ -197,7 +200,8 @@ readonly class FieldsController
 
     /**
      * Unused and Has instances where they have something to show, then the Keywords pair
-     * (see {@see viewPair()}), plus whichever is selected.
+     * and, on multi-site installs, the Translation pair (see {@see viewPair()}), plus
+     * whichever is selected.
      *
      * @return list<array{value: string, label: string, group?: string}>
      */
@@ -222,7 +226,14 @@ readonly class FieldsController
             $fields->filter(fn (FieldInterface $field) => (bool) $field->searchable)->count(),
             $fields->count(),
             $selected,
-        )];
+        ), ...(! Sites::isMultiSite() && ! in_array($selected, ['translatable', 'not-translatable'], true) ? [] : $this->viewPair(
+            t('Translation', category: 'discontent'),
+            ['translatable', t('Translatable', category: 'discontent')],
+            ['not-translatable', t('Not translatable', category: 'discontent')],
+            $fields->filter(fn (FieldInterface $field) => ! in_array($this->translationMethod($field), [null, TranslationMethod::None], true))->count(),
+            $fields->filter(fn (FieldInterface $field) => $this->translationMethod($field) !== null)->count(),
+            $selected,
+        ))];
     }
 
     /** @param array{search: string, type: string, view: string} $filters */
@@ -237,6 +248,8 @@ readonly class FieldsController
             'instances' => $this->scan->instances((string) $field->uid) !== [],
             'keywords' => (bool) $field->searchable,
             'no-keywords' => ! $field->searchable,
+            'translatable' => ! in_array($this->translationMethod($field), [null, TranslationMethod::None], true),
+            'not-translatable' => $this->translationMethod($field) === TranslationMethod::None,
             default => true,
         };
     }
@@ -262,6 +275,43 @@ readonly class FieldsController
         }
 
         return false;
+    }
+
+    /**
+     * The field's chosen translation method, or null when its type fixes it (Matrix,
+     * Addresses and Content Block are always per site; their propagation method is what
+     * varies). Showing a fixed method as though it were a setting would mislead.
+     */
+    private function translationMethod(FieldInterface $field): ?TranslationMethod
+    {
+        if (count($field::supportedTranslationMethods()) < 2) {
+            return null;
+        }
+
+        return TranslationMethod::tryFrom($field->translationMethod) ?? TranslationMethod::None;
+    }
+
+    /**
+     * How a field's values are translated, said shortly (the column names the rest), or a
+     * faint dash when they aren't or its type gives no choice. A custom method shows its
+     * translation key format on hover.
+     *
+     * @return array{html: string}|string
+     */
+    private function translationCell(FieldInterface $field): array|string
+    {
+        $method = $this->translationMethod($field);
+
+        return match ($method) {
+            null => $this->faintDash(t('Set by the field type', category: 'discontent')),
+            TranslationMethod::None => $this->faintDash(t('Not translatable', category: 'discontent')),
+            TranslationMethod::Site => t('Each site', category: 'discontent'),
+            TranslationMethod::SiteGroup => t('Each site group', category: 'discontent'),
+            TranslationMethod::Language => t('Each language', category: 'discontent'),
+            TranslationMethod::Custom => ['html' => Html::tag('span', Html::encode(t('Custom', category: 'discontent')), [
+                'title' => (string) $field->translationKeyFormat,
+            ])],
+        };
     }
 
     private function typeLabel(FieldInterface $field): string
@@ -291,6 +341,7 @@ readonly class FieldsController
             'type' => $this->typeCell($field),
             'usages' => $this->usagesCell($this->scan->usageCount($field), $this->scan->owners((string) $field->uid)),
             'keywords' => $this->flag((bool) $field->searchable),
+            'translation' => $this->translationCell($field),
             ...($this->readOnly ? [] : [
                 '_deleteUrl' => route('craft.cp.settings.fields.destroy', ['fieldId' => $field->id]),
                 '_deleteConfirmMessage' => t('Are you sure you want to delete “{name}”?', ['name' => $name], 'discontent'),
@@ -318,6 +369,7 @@ readonly class FieldsController
             'usages' => $this->ownerCell($owner),
             // The same field, so it feeds search the same way.
             'keywords' => $this->flag((bool) $field->searchable),
+            'translation' => $this->translationCell($field),
             '_deletable' => false,
         ];
     }

@@ -46,6 +46,7 @@ By default Discontent **replaces** Craft’s native Settings → Sections, Entry
 - View: **Show all**, **Unused** (not in any field layout), **Has instances** — fields used under a different label or handle, each instance nested under its field — or **Used for keywords**
 - **Used by** shows the layouts a field is in as chips, the first plus a “+N” for the rest, falling back to Craft’s count when not every layout can be named
 - **Used for keywords** column — whether the field’s values feed element search
+- **Translation Method** column (multi-site installs) — “Each site”, “Each site group”, “Each language” or “Custom”, with **Translatable** / **Not translatable** views
 - Search, sort, double-click a row to edit in a slideout, delete, and “New field”
 
 **Shareable views** — the current search/filter state lives in the URL, so you can bookmark or share a link to a filtered set.
