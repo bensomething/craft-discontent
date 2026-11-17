@@ -2,7 +2,7 @@
 
 # Discontent
 
-Better **Sections**, **Entry Types** and **Fields** pages for Craft CMS: see where everything is used, find what isn't, and filter down to what you're cleaning up.
+Filtering, usage and slideout editing for sections, fields and entry types.
 
 ## Requirements
 

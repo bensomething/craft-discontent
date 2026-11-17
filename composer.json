@@ -1,6 +1,6 @@
 {
     "name": "bensomething/craft-discontent",
-    "description": "Filtering and slideout editing for fields and entry types.",
+    "description": "Filtering, usage and slideout editing for sections, fields and entry types.",
     "type": "craft-plugin",
     "license": "MIT",
     "keywords": [
