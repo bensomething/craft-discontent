@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added a **Sites** column to the Sections page on multi-site installs, and searching Sections now matches site names.
 ### Added
 - **Fields**: a **Translation Method** column and **Translatable** / **Not translatable** views, on multi-site installs.
 - **Sections**: a **Workflow** column and **Has workflow** / **No workflow** views, on Craft Pro once a workflow exists.
